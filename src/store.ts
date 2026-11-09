@@ -204,7 +204,13 @@ export const useStore = create<Store>((set, get) => {
 
     advance(sim) {
       const before = get().now;
-      const after = before + sim;
+      let after = before + sim;
+      // Fast-forwarding never skips past a scheduled action: stop the clock at the first one
+      // that comes due, run it, and drop back to 1x so it can be seen (e.g. the door opening).
+      const firstDue = Math.min(...get().tasks.map((t) => t.runAt));
+      const hitsTask = firstDue <= Math.floor(after);
+      if (hitsTask && firstDue > Math.floor(before)) after = firstDue;
+      if (hitsTask && get().speed > 1) set({ speed: 1 });
       const whole = Math.floor(after) - Math.floor(before);
       set({ now: after });
       if (whole <= 0) return;

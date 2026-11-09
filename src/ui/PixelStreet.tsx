@@ -316,10 +316,11 @@ export function PixelStreet() {
       // ---- dog walker: comes while the front door is unlocked ----
       const stop = dx + 13;
       if (unlocked) {
-        if (!walker.visible) { walker.visible = true; walker.x = W + 6; }
-        walker.x = Math.max(stop, walker.x - 0.7);
+        // start just down the street so they arrive within a few seconds
+        if (!walker.visible) { walker.visible = true; walker.x = Math.min(W + 6, stop + 70); }
+        walker.x = Math.max(stop, walker.x - 1.4);
       } else if (walker.visible) {
-        walker.x += 0.8;
+        walker.x += 1.4;
         if (walker.x > W + 20) walker.visible = false;
       }
       if (walker.visible) {
