@@ -125,14 +125,14 @@ h1, h2, h3, h4, p { margin: 0; }
 .layout {
   flex: 1;
   display: grid;
-  gap: 20px;
-  padding: 20px 28px 28px;
+  gap: 24px;
+  padding: 24px 32px 32px;
   grid-template-columns: minmax(0, 1fr) 430px;
   align-items: stretch;
 }
-.left { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.left { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 
-.stage { border-radius: var(--r-lg); overflow: hidden; min-height: 500px; height: min(62vh, 680px); }
+.stage { border-radius: var(--r-lg); overflow: hidden; min-height: 500px; height: min(62vh, 680px); flex: 1 0 auto; }
 .scene { position: absolute; inset: 0; transition: background 1.2s linear; }
 .scene--loading, .scene--fallback { display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
 .stage__hint {
@@ -280,10 +280,10 @@ h1, h2, h3, h4, p { margin: 0; }
 .entry--schedule::before, .entry--validation::before { background: var(--info); }
 
 /* ===== house cards ===== */
-.house { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-.bottom { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; align-items: stretch; }
+.house { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.bottom { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; align-items: stretch; }
 .card {
-  min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 11px;
+  min-width: 0; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
   border-radius: var(--r-md); transition: transform 0.15s, box-shadow 0.15s, border-color 0.3s;
 }
 .card:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--hard); }
@@ -300,7 +300,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .card--flash { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 0 var(--hard); }
 .card--pending { animation: pending 1s steps(2) infinite; }
 @keyframes pending { 0%, 100% { border-color: var(--line); } 50% { border-color: var(--sensitive); } }
-.upcoming { border-radius: var(--r-lg); padding: 14px 16px; font-size: 12.5px; overflow: auto; }
+.upcoming { border-radius: var(--r-lg); padding: 18px 20px; font-size: 12.5px; overflow: auto; }
 .upcoming h3 { display: flex; align-items: center; gap: 6px; font-family: var(--pixel); font-size: 10px; font-weight: 400; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 9px; }
 .upcoming p { font-weight: 600; }
 .upcoming ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -317,10 +317,10 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 
 /* ===== how to use ===== */
-.howto { background: var(--panel); border: 2px solid var(--line); box-shadow: var(--pop); border-radius: var(--r-lg); padding: 12px 14px 14px; }
-.howto__title { font-family: var(--pixel); font-size: 10px; font-weight: 400; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 10px; }
-.howto__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.howto__tip { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: var(--r-sm); background: var(--bg); border: 2px solid var(--line); }
+.howto { background: var(--panel); border: 2px solid var(--line); box-shadow: var(--pop); border-radius: var(--r-lg); padding: 18px 20px 20px; }
+.howto__title { font-family: var(--pixel); font-size: 10px; font-weight: 400; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 14px; }
+.howto__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.howto__tip { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: var(--r-sm); background: var(--bg); border: 2px solid var(--line); }
 .howto__icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--hard); background: #8fc7ef; color: #14283a; }
 .howto__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .howto__text strong { font-family: var(--display); font-weight: 500; font-size: 14px; }
