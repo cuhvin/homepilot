@@ -316,6 +316,18 @@ h1, h2, h3, h4, p { margin: 0; }
   padding: 5px 7px 4px; border-radius: 7px; background: rgba(22, 26, 36, 0.8); border: 2px solid var(--hard);
 }
 
+/* ===== how to use ===== */
+.howto { background: var(--panel); border: 2px solid var(--line); box-shadow: var(--pop); border-radius: var(--r-lg); padding: 12px 14px 14px; }
+.howto__title { font-family: var(--pixel); font-size: 10px; font-weight: 400; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 10px; }
+.howto__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.howto__tip { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: var(--r-sm); background: var(--bg); border: 2px solid var(--line); }
+.howto__icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--hard); background: var(--accent); color: var(--accent-ink); }
+.howto__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.howto__text strong { font-family: var(--display); font-weight: 500; font-size: 14px; }
+.howto__text span { font-size: 12px; font-weight: 600; color: var(--muted); line-height: 1.4; }
+@media (max-width: 1300px) { .howto__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .howto__grid { grid-template-columns: minmax(0, 1fr); } }
+
 /* ===== responsive ===== */
 @media (max-width: 1100px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
@@ -325,6 +337,7 @@ h1, h2, h3, h4, p { margin: 0; }
   .side { order: 2; }
   .house { order: 3; }
   .bottom { order: 4; }
+  .howto { order: 5; }
   .side { min-height: 0; height: 640px; }
 }
 @media (max-width: 860px) {
