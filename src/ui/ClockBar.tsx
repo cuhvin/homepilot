@@ -13,7 +13,8 @@ export function ClockBar() {
   const d = daylight(now);
   return (
     <div className="clock">
-      <span className="clock__time" title="Simulated time">
+      <span className="clock__time" title="Simulated home clock: speed it up to watch scheduled actions run">
+        <span className="clock__tag">SIM</span>
         <span className="clock__sun" style={{ background: d > 0.5 ? '#ffd166' : d > 0.05 ? '#ff9466' : '#c9d4ff' }} />
         {formatClock(now)}
       </span>

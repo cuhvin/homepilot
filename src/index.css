@@ -49,6 +49,7 @@ h1, h2, h3, h4, p { margin: 0; }
 
 .clock { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .clock__time { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 17px; font-weight: 500; padding: 6px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+.clock__tag { font-size: 9.5px; letter-spacing: 0.1em; color: var(--accent-2); border: 1px solid rgba(242, 166, 90, 0.4); border-radius: 5px; padding: 1px 4px; }
 .clock__sun { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
 .clock__btns { display: flex; gap: 4px; }
 

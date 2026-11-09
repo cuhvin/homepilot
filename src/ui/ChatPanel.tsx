@@ -6,7 +6,7 @@ import { PlanCard } from './PlanCard';
 const EXAMPLES = [
   'Movie night',
   "I'm leaving for the weekend",
-  'Weekday mornings at 7: music, blinds up, warm house',
+  'Every weekday at 7 AM: play music, open the blinds, warm up the house',
   'The dog walker comes at 3pm, let them in and lock up after',
   'Open the garage for a delivery',
   'Turn off the cameras',

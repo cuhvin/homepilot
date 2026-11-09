@@ -116,7 +116,7 @@ export const useStore = create<Store>((set, get) => {
     home: initialHome(),
     now: START_MINUTES,
     speed: 1,
-    chat: [{ id: 'hello', role: 'agent', text: "Hi! I'm HomePilot. Tell me what you need, like \"movie night\" or \"I'm leaving for the weekend\". I'll show you my plan, and anything security-related waits for your OK." }],
+    chat: [{ id: 'hello', role: 'agent', text: "Hi! I'm HomePilot. Tell me what you need, like \"movie night\" or \"I'm leaving for the weekend\". I'll show you my plan, and anything security-related waits for your OK. The clock up top is simulated: speed it up to watch scheduled actions happen." }],
     plans: {},
     tasks: [],
     log: loadLog(),

@@ -64,7 +64,7 @@ export function homeForPrompt(home: HomeState): string {
 // Time is "minutes since Monday 00:00" so schedules like "weekdays at 7:00" are easy.
 
 export const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-export const START_MINUTES = 4 * 1440 + 17 * 60 + 40; // Friday 17:40
+export const START_MINUTES = 4 * 1440 + 17 * 60 + 40; // simulation starts Friday 17:40
 
 export function dayIndex(min: number): number {
   return Math.floor(min / 1440) % 7;

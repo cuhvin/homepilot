@@ -74,7 +74,7 @@ export function mockPlan(request: string): string {
       message: 'I can switch the cameras off. Please confirm, since that pauses recording. (mock LLM)',
     });
   }
-  if (q.includes('morning')) {
+  if (q.includes('morning') || q.includes('weekday')) {
     return R({
       kind: 'plan',
       understanding: 'Weekday morning routine at 7:00.',

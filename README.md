@@ -91,6 +91,7 @@ npm test                        # validator, executor, scheduling and API tests
 4. Deploy. `api/plan.ts` becomes a serverless function automatically.
 
 ## Notes
+- The home runs on a simulated clock (shown with a SIM tag) so scheduled actions such as "every weekday at 7 AM" or "unlock at 3 PM" can be shown in a short demo; use 10×/60× or +1h to fast-forward.
 - The 3D room is built entirely in code from React Three Fiber primitives: no external model files, and every texture is drawn on a canvas.
 - Every device the agent controls is visible in the 3D room (lights, blinds, TV, speaker, vacuum, thermostat, front door, alarm keypad, camera), except the garage, which appears as a status card.
 - Gemini free tier: Google may use free-tier prompts to improve its products, so don't type personal information into the demo.
