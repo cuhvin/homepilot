@@ -3,6 +3,7 @@
 // - retries with exponential backoff + jitter on 429 / 5xx / timeouts
 // - honors the server's suggested retry delay, gives up early if it is long
 // - one "repair" round-trip when the output fails to parse
+// - falls back to a second free-tier model when the first one is rate-limited
 
 import { GoogleGenAI, ApiError } from '@google/genai';
 import { SYSTEM_PROMPT, repairPrompt } from './prompts.js';
@@ -36,9 +37,13 @@ const MAX_INLINE_WAIT_SEC = 8; // longer suggested waits are returned to the use
 
 type Content = { role: 'user' | 'model'; parts: { text: string }[] };
 
-export async function planWithGemini(userPrompt: string, opts: { apiKey?: string; model?: string } = {}): Promise<LlmResult> {
+export const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+export const DEFAULT_FALLBACK = 'gemini-3.1-flash-lite';
+
+export async function planWithGemini(userPrompt: string, opts: { apiKey?: string; model?: string; fallback?: string } = {}): Promise<LlmResult> {
   const apiKey = opts.apiKey ?? process.env.GEMINI_API_KEY;
-  const model = opts.model ?? process.env.GEMINI_MODEL ?? 'gemini-3.1-flash-lite';
+  let model = opts.model ?? process.env.GEMINI_MODEL ?? DEFAULT_MODEL;
+  const fallback = opts.fallback ?? process.env.GEMINI_FALLBACK_MODEL ?? DEFAULT_FALLBACK;
   if (!apiKey) {
     return { ok: false, status: 500, code: 'config_error', message: 'Server is missing GEMINI_API_KEY.', attempts: 0 };
   }
@@ -85,8 +90,19 @@ export async function planWithGemini(userPrompt: string, opts: { apiKey?: string
     }
   };
 
+  // Each free-tier model has its own quota: if the primary is rate-limited, try the fallback once.
+  const callWithFallback = async (c: Content[]) => {
+    const r = await call(c);
+    if ('ok' in r && r.code === 'rate_limited' && fallback && fallback !== model) {
+      console.warn(`[llm] ${model} rate-limited, falling back to ${fallback}`);
+      model = fallback;
+      return call(c);
+    }
+    return r;
+  };
+
   const contents: Content[] = [{ role: 'user', parts: [{ text: userPrompt }] }];
-  const first = await call(contents);
+  const first = await callWithFallback(contents);
   if ('ok' in first) return first;
 
   let raw = first.text;
@@ -94,7 +110,7 @@ export async function planWithGemini(userPrompt: string, opts: { apiKey?: string
   let repaired = false;
   if (!parsed.ok) {
     // Error-feedback repair: show the model its own output and what was wrong, once.
-    const second = await call([
+    const second = await callWithFallback([
       ...contents,
       { role: 'model', parts: [{ text: raw }] },
       { role: 'user', parts: [{ text: repairPrompt(raw, parsed.error) }] },

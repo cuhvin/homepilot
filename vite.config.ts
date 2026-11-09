@@ -35,7 +35,7 @@ function devApi(): Plugin {
 export default defineConfig(({ mode }) => {
   // expose GEMINI_API_KEY / GEMINI_MODEL / MOCK_LLM from .env.local to the dev API (server only)
   const env = loadEnv(mode, process.cwd(), '')
-  for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'MOCK_LLM']) if (env[k]) process.env[k] = env[k]
+  for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'GEMINI_FALLBACK_MODEL', 'MOCK_LLM']) if (env[k]) process.env[k] = env[k]
   return {
     plugins: [react(), devApi()],
     test: { include: ['tests/**/*.test.ts'] },

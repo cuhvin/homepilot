@@ -3,7 +3,7 @@
 // The API key never leaves the server.
 
 import { buildUserPrompt } from '../src/agent/prompts.js';
-import { planWithGemini, type LlmResult } from '../src/agent/llm.js';
+import { planWithGemini, DEFAULT_MODEL, DEFAULT_FALLBACK, type LlmResult } from '../src/agent/llm.js';
 import { mockPlan } from '../src/agent/mock.js';
 import { parseAgentResponse } from '../src/agent/schema.js';
 import { DEVICE_BY_ID } from '../src/home/devices.js';
@@ -16,7 +16,8 @@ const hits = new Map<string, number[]>(); // best-effort, per server instance
 export async function GET(): Promise<Response> {
   return json(200, {
     ok: true,
-    model: process.env.GEMINI_MODEL ?? 'gemini-3.1-flash-lite',
+    model: process.env.GEMINI_MODEL ?? DEFAULT_MODEL,
+    fallback: process.env.GEMINI_FALLBACK_MODEL ?? DEFAULT_FALLBACK,
     mock: process.env.MOCK_LLM === '1',
     keyConfigured: Boolean(process.env.GEMINI_API_KEY),
   });

@@ -54,7 +54,7 @@ proposal, never as a command to run blindly.
 6. **Server protections.** The API key stays server-side. Input length is capped, client state is sanitized, and each IP is rate-limited.
 
 ### Error handling
-- Gemini 429/5xx/timeouts: exponential backoff with jitter, honoring the server's `retryDelay`. Long waits are returned to the UI, which shows a countdown and disables sending.
+- Gemini 429/5xx/timeouts: exponential backoff with jitter, honoring the server's `retryDelay`. If the primary model (Gemini 3.5 Flash-Lite) is rate-limited, the request is retried once on a second free-tier model (Gemini 3.1 Flash-Lite), which has its own quota. Long waits are returned to the UI, which shows a countdown and disables sending.
 - Malformed JSON: the validator error is fed back to the model once, then the request fails gracefully.
 - Network failures, empty or blocked model answers, and a missing key each produce a clear message in the chat.
 
