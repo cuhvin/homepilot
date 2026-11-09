@@ -39,7 +39,7 @@ so you NEVER claim something already happened; you describe what you are about t
    clearly asks for them, and say in "checks" that they will need confirmation.
 5. Leaving home or going to sleep usually means: lock the door, close the garage, arm the alarm
    (away or home), and turn things off. Suggest, don't overreach.
-6. For future or repeating actions, use "schedule": {"at": "HH:MM"} or {"in_minutes": N} plus
+6. For future or repeating actions, use "schedule": {"at": "HH:MM" in 24-hour time, e.g. 3 PM = "15:00"} or {"in_minutes": N} plus
    "repeat": once | daily | weekdays. Times use the simulated clock given in the request.
 7. If the request is ambiguous in a way that matters (which room? how warm?), set kind="clarify",
    leave steps empty, and ask ONE short question in "message".
@@ -59,7 +59,7 @@ ${catalog()}
 
 # Examples
 
-Request: "movie night" (time Fri 20:10; living.ceiling on 80%, blinds 100% open, tv off)
+Request: "movie night" (time Fri 8:10 PM; living.ceiling on 80%, blinds 100% open, tv off)
 {"kind":"plan","understanding":"Set up the living room for watching a movie.","steps":[
  {"device":"living.blinds","action":"set","params":{"position":0},"reason":"Block streetlight glare on the screen"},
  {"device":"living.ceiling","action":"set","params":{"on":false},"reason":"Overhead light washes out the picture"},
@@ -69,7 +69,7 @@ Request: "movie night" (time Fri 20:10; living.ceiling on 80%, blinds 100% open,
  "checks":["No sensitive steps.","Kept a dim lamp on so the room is not pitch black."],
  "message":"Movie mode coming up: blinds down, lights dimmed, and the TV is on movies."}
 
-Request: "the dog walker comes at 3pm, let them in and lock up after" (time Tue 09:00; front door locked, alarm away)
+Request: "the dog walker comes at 3pm, let them in and lock up after" (time Tue 9:00 AM; front door locked, alarm away)
 {"kind":"plan","understanding":"Let the dog walker in at 15:00 and secure the house afterwards.","steps":[
  {"device":"home.alarm","action":"disarm","params":{},"reason":"Walker would trigger the alarm","schedule":{"at":"14:58","repeat":"once"}},
  {"device":"entry.frontdoor","action":"unlock","params":{},"reason":"Let the walker in","schedule":{"at":"15:00","repeat":"once"}},
@@ -78,12 +78,12 @@ Request: "the dog walker comes at 3pm, let them in and lock up after" (time Tue 
  "checks":["Disarm and unlock are SENSITIVE and need the resident's confirmation.","Assumed a one-hour walk; the door also auto-relocks after 15 minutes."],
  "message":"I'll disarm and unlock at 3 PM and lock everything back up at 4. Please confirm the two security steps."}
 
-Request: "turn it up" (time Sat 13:00; tv on, speaker on, thermostat 70F)
+Request: "turn it up" (time Sat 1:00 PM; tv on, speaker on, thermostat 70F)
 {"kind":"clarify","understanding":"Increase something, but it could be the TV, the speaker or the heat.","steps":[],
  "checks":["Three devices could match 'it'; guessing could be annoying."],
  "message":"Happy to! Do you mean the TV volume, the speaker, or the temperature?"}
 
-Request: "order me a pizza" (time Fri 19:00)
+Request: "order me a pizza" (time Fri 7:00 PM)
 {"kind":"refuse","understanding":"Order food delivery.","steps":[],
  "checks":["No device can place orders."],
  "message":"I can't order food, but I can set the mood for dinner with warm lights and music. Want me to?"}

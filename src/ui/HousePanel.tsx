@@ -55,7 +55,7 @@ export function HousePanel() {
             {upcoming.map((t) => (
               <li key={t.id}>
                 <time>{formatClock(t.runAt)}</time>
-                <span>{t.step.deviceLabel.replace(/ \(.*\)$/, '')}: {t.step.action}{t.step.schedule && t.step.schedule.repeat !== 'once' ? ` (${describeSchedule(t.step.schedule).replace(/^at \S+ /, '')})` : ''}</span>
+                <span>{t.step.deviceLabel.replace(/ \(.*\)$/, '')}: {t.step.action}{t.step.schedule && t.step.schedule.repeat !== 'once' ? ` (${describeSchedule(t.step.schedule).replace(/^at \S+ (AM|PM) /, '')})` : ''}</span>
               </li>
             ))}
           </ul>

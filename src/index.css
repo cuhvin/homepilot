@@ -209,7 +209,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .upcoming h3 { display: flex; align-items: center; gap: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
 .upcoming ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .upcoming li { display: flex; gap: 8px; }
-.upcoming time { font-family: var(--mono); color: var(--info); flex: none; }
+.upcoming time { font-family: var(--mono); color: var(--info); flex: none; white-space: nowrap; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) {

@@ -74,11 +74,23 @@ export function minuteOfDay(min: number): number {
   return ((min % 1440) + 1440) % 1440;
 }
 
+/** 12-hour time of day, e.g. 17*60+5 -> "5:05 PM". */
+export function format12(minuteOfDayValue: number): string {
+  const h24 = Math.floor(minuteOfDayValue / 60) % 24;
+  const mm = String(minuteOfDayValue % 60).padStart(2, '0');
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}:${mm} ${h24 < 12 ? 'AM' : 'PM'}`;
+}
+
+/** "HH:MM" (24h, the LLM schedule format) -> "7:00 AM". */
+export function formatHHMM(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number);
+  return format12(h * 60 + m);
+}
+
 export function formatClock(min: number): string {
   const m = minuteOfDay(Math.floor(min));
-  const hh = String(Math.floor(m / 60)).padStart(2, '0');
-  const mm = String(m % 60).padStart(2, '0');
-  return `${DAY_NAMES[dayIndex(Math.floor(min))]} ${hh}:${mm}`;
+  return `${DAY_NAMES[dayIndex(Math.floor(min))]} ${format12(m)}`;
 }
 
 /** 0 at midnight, 1 at noon: how much daylight there is (smooth curve). */

@@ -132,9 +132,12 @@ describe('executor + scheduling', () => {
   it('weekday schedules skip the weekend', () => {
     // START is Friday 17:40, so "weekdays at 07:00" should next run Monday 07:00
     const t = firstRun({ at: '07:00', repeat: 'weekdays' }, START_MINUTES);
-    expect(formatClock(t)).toBe('Mon 07:00');
+    expect(formatClock(t)).toBe('Mon 7:00 AM');
     const n = nextRun({ at: '07:00', repeat: 'weekdays' }, t)!;
-    expect(formatClock(n)).toBe('Tue 07:00');
+    expect(formatClock(n)).toBe('Tue 7:00 AM');
+    expect(formatClock(START_MINUTES)).toBe('Fri 5:40 PM');
+    expect(formatClock(4 * 1440)).toBe('Fri 12:00 AM');
+    expect(formatClock(4 * 1440 + 12 * 60 + 30)).toBe('Fri 12:30 PM');
     expect(nextRun({ at: '07:00', repeat: 'once' }, t)).toBeNull();
   });
 

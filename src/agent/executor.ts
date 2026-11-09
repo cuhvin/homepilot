@@ -2,7 +2,7 @@
 // and fires scheduled tasks. Pure functions: (state, input) -> new state + events.
 
 import type { HomeState, DeviceState } from '../home/state.js';
-import { minuteOfDay, dayIndex } from '../home/state.js';
+import { minuteOfDay, dayIndex, formatHHMM } from '../home/state.js';
 import type { ValidatedStep, NormalizedSchedule } from './validator.js';
 
 export interface ExecResult {
@@ -128,5 +128,5 @@ function advanceToAllowedDay(t: number, repeat: NormalizedSchedule['repeat']): n
 export function describeSchedule(s: NormalizedSchedule): string {
   if (s.inMinutes !== undefined) return `in ${s.inMinutes} min`;
   const rep = s.repeat === 'once' ? '' : s.repeat === 'daily' ? ' every day' : ' on weekdays';
-  return `at ${s.at}${rep}`;
+  return `at ${formatHHMM(s.at ?? '00:00')}${rep}`;
 }
