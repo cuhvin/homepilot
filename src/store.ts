@@ -50,8 +50,6 @@ interface Store {
   tasks: ScheduledTask[];
   log: LogEntry[];
   busy: boolean;
-  /** what the pipeline strip shows: the most recent request's journey */
-  pipeline: { phase: 'idle' | 'planning' | 'done' | 'error'; request: string; error: string | null; planId: string | null; model: string | null };
   cooldownUntil: number; // epoch ms, set after a 429
   highlight: string | null;
 
@@ -123,7 +121,6 @@ export const useStore = create<Store>((set, get) => {
     tasks: [],
     log: loadLog(),
     busy: false,
-    pipeline: { phase: 'idle', request: '', error: null, planId: null, model: null },
     cooldownUntil: 0,
     highlight: null,
 
@@ -136,7 +133,7 @@ export const useStore = create<Store>((set, get) => {
         .slice(-6)
         .map((c) => ({ role: c.role as 'user' | 'agent', text: c.text }));
       say('user', request);
-      set({ busy: true, pipeline: { phase: 'planning', request, error: null, planId: null, model: null } });
+      set({ busy: true });
       log('request', request);
 
       let data: Record<string, unknown>;
@@ -160,7 +157,6 @@ export const useStore = create<Store>((set, get) => {
           : String(data.message ?? 'Something went wrong.');
         say('system', msg, { tone: 'error' });
         log('llm_error', msg, { code: data.code, raw: data.raw });
-        set((s) => ({ pipeline: { ...s.pipeline, phase: 'error', error: data.code === 'rate_limited' ? 'Rate limited' : 'Request failed' } }));
         return;
       }
 
@@ -183,7 +179,6 @@ export const useStore = create<Store>((set, get) => {
       const planId = uid('p');
       set((s) => ({ plans: { ...s.plans, [planId]: { id: planId, request, response, steps, meta, raw: String(data.raw ?? '') } } }));
       say('agent', response.message, { planId });
-      set((s) => ({ pipeline: { ...s.pipeline, phase: 'done', planId, model: meta?.model ?? null } }));
       await runQueued(planId);
     },
 
@@ -250,7 +245,7 @@ export const useStore = create<Store>((set, get) => {
       set({ highlight: id });
     },
     resetHome() {
-      set({ home: initialHome(), now: START_MINUTES, tasks: [], plans: {}, chat: [], pipeline: { phase: 'idle', request: '', error: null, planId: null, model: null } });
+      set({ home: initialHome(), now: START_MINUTES, tasks: [], plans: {}, chat: [] });
       log('system', 'Home reset to defaults.');
     },
     clearLog() {
