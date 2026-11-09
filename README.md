@@ -3,23 +3,55 @@
 CS 4680 Prompt Engineering · "AI Agent in Action" project
 
 HomePilot turns plain-language requests ("movie night", "I'm leaving for the weekend",
-"let the dog walker in at 3") into a plan of smart-home actions. It validates every step,
-asks the resident to confirm anything security-sensitive, and then executes the plan in a
-3D living-room simulation. Every action is written to an audit log.
+"let the dog walker in at 3") into a plan of smart-home actions. It shows the plan, validates
+every step, asks the resident to confirm anything security-sensitive, and then carries the plan
+out on a 3D map of the home. Every action is written to an audit log.
 
 - **Live demo:** https://homepilot-rho.vercel.app
 - **Demo video:** _add YouTube URL_
 
 ![HomePilot at night in movie mode: the 3D living room, device cards, pixel-art street view and the assistant's 5-step plan](docs/screenshot.png)
 
-The 3D living room stands in for a 3D map of your home: the long-term idea is to scan your own house or apartment with a phone and let HomePilot run on that model.
+> **It's a simulation.** HomePilot doesn't control real devices yet. The LLM, the validator and
+> the confirmations are real; the home they act on is a simulated living room (plus a few
+> whole-home devices) built in code.
 
 ## The problem
 
-Today's voice assistants either do exactly one literal command or guess silently. Neither is
-good enough when the action is "unlock the front door". HomePilot shows its plan before acting,
-explains every step, and keeps a human in charge of risky actions. LLM output is treated as a
-proposal, never as a command to run blindly.
+Mainstream home assistants have caught up on understanding language. Amazon's Alexa+ and
+Google's Gemini for Home both run on large language models: they understand natural,
+multi-part requests, Alexa+ can create routines from a sentence, and voice unlocking can be
+protected with a spoken PIN.
+
+What they don't give you is visibility. There's no plan to review before something happens:
+the assistant acts, or it fails, and you find out afterwards. Google itself cautions that
+Gemini's home controls shouldn't be relied on for safety-critical actions, because the model
+isn't deterministic. Reviewers also point to thin routine logic, uneven device support and
+buggy apps, and the most advanced features need a subscription.
+
+HomePilot is built around that gap: trust and visibility rather than raw understanding.
+The LLM's output is treated as a proposal, never as a command to run blindly. You see the
+whole plan with a reason for each step, every step gets a risk level, anything touching
+security waits for your OK (even when it's scheduled for later), and you watch the result
+happen on a 3D map.
+
+Sources: [Google: Gemini for Home](https://blog.google/products-and-platforms/devices/google-nest/gemini-for-home-launch/),
+[Consumer Reports on Alexa+](https://www.consumerreports.org/electronics/digital-assistants/amazon-alexa-plus-ai-assistant-review-a1667486499/),
+[How-To Geek on Alexa](https://www.howtogeek.com/uncomfortable-truths-about-amazon-alexa/) (2025–2026).
+
+## Today vs. the vision
+
+| | Today | Vision |
+|---|---|---|
+| The home | A living room modeled in code, plus the garage, alarm, cameras and thermostat as cards | Scan your own house or apartment with a phone to make its 3D map |
+| Devices | Simulated; their state lives in the browser | Your real lights, locks and thermostat |
+| Input | Typed requests | Voice as well |
+| Time | A simulated clock you can speed up, so schedules can be shown in a demo | Real time |
+| Model | Gemini 3.5 Flash-Lite on the free tier | Same approach, any capable model |
+
+What Alexa+ and Gemini for Home already do better: they work with thousands of real devices, by
+voice, today. HomePilot is a prototype of a safer way for an assistant to act, not a replacement
+for them.
 
 ## How it works
 
@@ -89,8 +121,8 @@ npm test                        # validator, executor, scheduling and API tests
 ```
 
 ## Notes
-- The home runs on a simulated clock (shown with a SIM tag) so scheduled actions such as "every weekday at 7 AM" or "unlock at 3 PM" can be shown in a short demo; use 10×/60× or +1h to fast-forward.
-- Below the cards, a pixel-art street view (`src/ui/PixelStreet.tsx`) mirrors the agent's actions from outside: the sky follows the SIM clock, the front door opens and a dog walker arrives while it is unlocked (taking the sleeping dog from its bed in the 3D room for a short walk and bringing it home), a delivery van pulls up while the garage is open, the chimney smokes while heating, and music notes drift out when the speaker plays.
+- The home runs on a simulated clock (shown with a SIM tag) so scheduled actions such as "every weekday at 7 AM" or "unlock at 3 PM" can be shown in a short demo; use 10×/60× or +1h to fast-forward. Fast-forwarding stops at each scheduled action and drops back to 1× so you can see it happen, and pausing the clock pauses the street view too.
+- Below the cards, a pixel-art street view (`src/ui/PixelStreet.tsx`) mirrors the agent's actions from outside: the sky follows the SIM clock; when the front door unlocks, a visitor walks up (the dog walker if the request mentioned one, who takes the sleeping dog from its bed in the 3D room for a short walk and brings it home; otherwise a guest who goes inside); a delivery van pulls up while the garage is open; the chimney smokes while heating; and music notes drift out when the speaker plays.
 - UI theme "Cozy cartoon": colors taken from the 3D room, Fredoka + Nunito, chunky outlines with solid drop shadows, one warm accent, and a pixel-art logo that matches the street view.
 - The 3D room is built entirely in code from React Three Fiber primitives: no external model files, and every texture is drawn on a canvas.
 - Every device the agent controls is visible in the 3D room (lights, blinds, TV, speaker, vacuum, thermostat, front door, alarm keypad, camera), except the garage, which appears as a status card.
