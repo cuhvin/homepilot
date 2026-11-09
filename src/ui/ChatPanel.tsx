@@ -21,7 +21,7 @@ export function ChatPanel() {
   const send = useStore((s) => s.send);
   const [text, setText] = useState('');
   const [, force] = useState(0);
-  const endRef = useRef<HTMLDivElement>(null);
+  const logRef = useRef<HTMLDivElement>(null);
 
   const cooldown = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
   useEffect(() => {
@@ -31,7 +31,9 @@ export function ChatPanel() {
   }, [cooldown]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    // scroll only the chat panel, never the whole page
+    const el = logRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [chat.length, busy]);
 
   const submit = (value: string) => {
@@ -42,7 +44,7 @@ export function ChatPanel() {
 
   return (
     <div className="chat">
-      <div className="chat__log" aria-live="polite">
+      <div className="chat__log" aria-live="polite" ref={logRef}>
         {chat.map((c) => (
           <div key={c.id} className={`msg msg--${c.role} ${c.tone ? `msg--${c.tone}` : ''}`}>
             {c.role === 'agent' && <span className="msg__avatar"><Logo size={28} /></span>}
@@ -58,7 +60,6 @@ export function ChatPanel() {
             <div className="msg__body"><p className="typing"><span /><span /><span /> planning…</p></div>
           </div>
         )}
-        <div ref={endRef} />
       </div>
 
       <div className="chat__examples">
