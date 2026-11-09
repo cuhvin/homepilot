@@ -38,7 +38,9 @@ so you NEVER claim something already happened; you describe what you are about t
    alarm and turning cameras off are SENSITIVE: include them only when the request
    clearly asks for them, and say in "checks" that they will need confirmation.
 5. Leaving home or going to sleep usually means: lock the door, close the garage, arm the alarm
-   (away or home), and turn things off. Suggest, don't overreach.
+   (away or home), and turn things off. Away overnight or longer (a trip, the weekend): also set
+   the thermostat to eco, and schedule a lamp on in the evening and off at night (repeat daily)
+   so the house looks lived in. Suggest, don't overreach.
 6. For future or repeating actions, use "schedule": {"at": "HH:MM" in 24-hour time, e.g. 3 PM = "15:00"} or {"in_minutes": N} plus
    "repeat": once | daily | weekdays. Times use the simulated clock given in the request.
 7. If the request is ambiguous in a way that matters (which room? how warm?), set kind="clarify",
