@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { MessageSquare, ScrollText } from 'lucide-react';
 import { useStore } from './store';
 import { ChatPanel } from './ui/ChatPanel';
@@ -8,7 +8,6 @@ import { ClockBar } from './ui/ClockBar';
 import { HomeStatus } from './ui/HomeStatus';
 import { PixelStreet } from './ui/PixelStreet';
 import { Logo } from './ui/Logo';
-import { daylight } from './home/state';
 
 const LivingRoomScene = lazy(() => import('./ui/scene/LivingRoomScene'));
 
@@ -28,25 +27,13 @@ function useSimClock() {
   }, [advance]);
 }
 
-/** The page's ambient glow follows the simulated sky (warm at dusk, deep at night). */
-function useAmbient(): CSSProperties {
-  const bucket = useStore((s) => Math.floor(s.now / 10));
-  const d = daylight(bucket * 10);
-  return {
-    '--amb-warm': `rgba(255, 140, 90, ${0.10 + (1 - Math.abs(d - 0.5) * 2) * 0.12})`,
-    '--amb-cool': `rgba(120, 100, 255, ${0.10 + (1 - d) * 0.10})`,
-    '--amb-day': `rgba(120, 190, 255, ${d * 0.10})`,
-  } as CSSProperties;
-}
-
 export default function App() {
   useSimClock();
-  const ambient = useAmbient();
   const [tab, setTab] = useState<'chat' | 'log'>('chat');
   const logCount = useStore((s) => s.log.length);
 
   return (
-    <div className="app" style={ambient}>
+    <div className="app">
       <header className="topbar">
         <div className="brand">
           <Logo />
