@@ -34,7 +34,8 @@ function shade(c: string, light: number) {
   return mix('#141a3a', c, 0.35 + 0.65 * light);
 }
 
-interface Actor { x: number; visible: boolean; frame: number; withDog?: boolean; arrived?: boolean }
+interface Actor { x: number; visible: boolean; frame: number }
+type WalkerPhase = 'idle' | 'arriving' | 'pickup' | 'walkingAway' | 'onWalk' | 'returning' | 'dropoff' | 'leaving';
 interface Car { x: number; dir: 1 | -1; color: string; speed: number }
 
 export function PixelStreet() {
@@ -63,7 +64,7 @@ export function PixelStreet() {
     const stars = Array.from({ length: 60 }, () => ({ x: r(), y: r() * 34, p: r() * 6 }));
     const clouds = Array.from({ length: 4 }, (_, i) => ({ x: r() * 400, y: 6 + i * 7 + r() * 4, w: 14 + r() * 16, s: 0.05 + r() * 0.08 }));
 
-    const walker: Actor = { x: 9999, visible: false, frame: 0 };
+    const walker = { x: 9999, frame: 0, phase: 'idle' as WalkerPhase, timer: 0, withDog: false };
     const van: Actor = { x: 9999, visible: false, frame: 0 };
     const cars: Car[] = [];
     const smoke: { x: number; y: number; life: number }[] = [];
@@ -315,34 +316,59 @@ export function PixelStreet() {
       }
       for (let i = cars.length - 1; i >= 0; i--) if (cars[i].x < -40 || cars[i].x > W + 40) cars.splice(i, 1);
 
-      // ---- dog walker: comes while the front door is unlocked ----
+      // ---- dog walker: one full visit per unlock ----
+      // arrive -> take the dog -> walk down the street -> come back -> dog goes home -> leave
       const stop = dx + 13;
-      if (unlocked && !wasUnlocked && walker.visible) walker.arrived = false; // new visit while still nearby
-      wasUnlocked = unlocked;
-      if (unlocked) {
-        // start just down the street so they arrive within a few seconds
-        if (!walker.visible) {
-          // brings the dog back if it's out, otherwise comes alone to pick it up
-          walker.visible = true;
-          walker.x = Math.min(W + 6, stop + 70);
-          walker.withDog = useStore.getState().dogOut;
-          walker.arrived = false;
-        }
-        walker.x = Math.max(stop, walker.x - 1.4 * k);
-        if (walker.x <= stop && !walker.arrived) {
-          walker.arrived = true;
-          const st = useStore.getState();
-          if (walker.withDog) { walker.withDog = false; st.setDogOut(false); }
-          else if (!st.dogOut) { walker.withDog = true; st.setDogOut(true); }
-        }
-      } else if (walker.visible) {
-        walker.x += 1.4 * k;
-        if (walker.x > W + 20) walker.visible = false;
+      const corner = stop + 120; // "around the corner"
+      const step = 2.1 * k; // ~30 px/s
+      if (unlocked && !wasUnlocked && walker.phase === 'idle') {
+        walker.phase = useStore.getState().dogOut ? 'returning' : 'arriving';
+        walker.withDog = useStore.getState().dogOut;
+        walker.x = corner;
       }
-      if (walker.visible) {
-        const moving = !(unlocked && walker.x <= stop);
+      wasUnlocked = unlocked;
+      let facingRight = false;
+      let moving = true;
+      switch (walker.phase) {
+        case 'arriving':
+        case 'returning':
+          walker.x = Math.max(stop, walker.x - step);
+          if (walker.x <= stop) {
+            walker.phase = walker.phase === 'arriving' ? 'pickup' : 'dropoff';
+            walker.timer = 700;
+          }
+          break;
+        case 'pickup':
+        case 'dropoff':
+          moving = false;
+          walker.timer -= 1000 / FPS * k;
+          if (walker.timer <= 0) {
+            const picking = walker.phase === 'pickup';
+            walker.withDog = picking;
+            useStore.getState().setDogOut(picking);
+            walker.phase = picking ? 'walkingAway' : 'leaving';
+          }
+          break;
+        case 'walkingAway':
+        case 'leaving':
+          facingRight = true;
+          walker.x += step;
+          if (walker.x >= corner) {
+            if (walker.phase === 'walkingAway') { walker.phase = 'onWalk'; walker.timer = 4000; }
+            else walker.phase = 'idle';
+          }
+          break;
+        case 'onWalk':
+          walker.timer -= 1000 / FPS * k;
+          if (walker.timer <= 0) walker.phase = 'returning';
+          break;
+      }
+      if (walker.phase !== 'idle' && walker.phase !== 'onWalk') {
         if (moving) walker.frame++;
-        drawWalker(px, walker.x, walker.frame, d, tick, !unlocked, Boolean(walker.withDog));
+        // fade in/out near the corner so they don't pop
+        ctx.globalAlpha = Math.max(0, Math.min(1, (corner - walker.x) / 25));
+        drawWalker(px, walker.x, walker.frame, d, tick, facingRight, walker.withDog);
+        ctx.globalAlpha = 1;
       }
     };
 

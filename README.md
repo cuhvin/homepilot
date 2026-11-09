@@ -92,7 +92,7 @@ npm test                        # validator, executor, scheduling and API tests
 
 ## Notes
 - The home runs on a simulated clock (shown with a SIM tag) so scheduled actions such as "every weekday at 7 AM" or "unlock at 3 PM" can be shown in a short demo; use 10×/60× or +1h to fast-forward.
-- Below the cards, a pixel-art street view (`src/ui/PixelStreet.tsx`) mirrors the agent's actions from outside: the sky follows the SIM clock, the front door opens and a dog walker arrives while it is unlocked (taking the sleeping dog from its bed in the 3D room for a walk, then bringing it back on the next visit), a delivery van pulls up while the garage is open, the chimney smokes while heating, and music notes drift out when the speaker plays.
+- Below the cards, a pixel-art street view (`src/ui/PixelStreet.tsx`) mirrors the agent's actions from outside: the sky follows the SIM clock, the front door opens and a dog walker arrives while it is unlocked (taking the sleeping dog from its bed in the 3D room for a short walk and bringing it home), a delivery van pulls up while the garage is open, the chimney smokes while heating, and music notes drift out when the speaker plays.
 - UI theme "Cozy cartoon": colors taken from the 3D room, Fredoka + Nunito, chunky outlines with solid drop shadows, one warm accent, and a pixel-art logo that matches the street view.
 - The 3D room is built entirely in code from React Three Fiber primitives: no external model files, and every texture is drawn on a canvas.
 - Every device the agent controls is visible in the 3D room (lights, blinds, TV, speaker, vacuum, thermostat, front door, alarm keypad, camera), except the garage, which appears as a status card.
