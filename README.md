@@ -7,7 +7,7 @@ HomePilot turns plain-language requests ("movie night", "I'm leaving for the wee
 asks the resident to confirm anything security-sensitive, and then executes the plan in a
 3D living-room simulation. Every action is written to an audit log.
 
-- **Live demo:** _add Vercel URL_
+- **Live demo:** https://homepilot-rho.vercel.app
 - **Demo video:** _add YouTube URL_
 
 ## The problem
@@ -83,12 +83,6 @@ npm run dev                     # http://localhost:5173 (the API route runs insi
 npm run dev:mock                # no key needed: canned plans for UI work
 npm test                        # validator, executor, scheduling and API tests
 ```
-
-## Deploy (Vercel, free)
-1. Push this repo to GitHub.
-2. Import it at vercel.com/new. The framework preset is Vite.
-3. Add `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`) under Project, then Settings, then Environment Variables.
-4. Deploy. `api/plan.ts` becomes a serverless function automatically.
 
 ## Notes
 - The home runs on a simulated clock (shown with a SIM tag) so scheduled actions such as "every weekday at 7 AM" or "unlock at 3 PM" can be shown in a short demo; use 10×/60× or +1h to fast-forward.
