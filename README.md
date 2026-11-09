@@ -12,7 +12,7 @@ asks the resident to confirm anything security-sensitive, and then executes the 
 
 ![HomePilot at night in movie mode: the 3D living room, device cards, pixel-art street view and the assistant's 5-step plan](docs/screenshot.png)
 
-The 3D living room stands in for a "digital twin" of your home: the long-term idea is to scan your own house or apartment with a phone and let HomePilot run on that model.
+The 3D living room stands in for a 3D copy of your home: the long-term idea is to scan your own house or apartment with a phone and let HomePilot run on that model.
 
 ## The problem
 
