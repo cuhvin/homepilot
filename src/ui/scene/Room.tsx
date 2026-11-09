@@ -5,6 +5,7 @@ import { C, plankTexture, artTexture } from './materials';
 
 export const H = 3.4; // wall height
 export const WIN = { x0: -2.0, x1: 0.4, y0: 1.1, y1: 2.7 }; // window opening in back wall
+export const DOOR = { z0: -2.95, z1: -1.85, h: 2.2 }; // front-door opening in left wall
 
 function Box({ args, position, color, rough = 0.85, cast = true, receive = true }: {
   args: [number, number, number]; position: [number, number, number]; color: string; rough?: number; cast?: boolean; receive?: boolean;
@@ -30,13 +31,22 @@ function Walls() {
       <Box args={[winW, WIN.y0, t]} position={[winCx, WIN.y0 / 2, zb]} color={C.wallBack} />
       <Box args={[winW, H - WIN.y1, t]} position={[winCx, (H + WIN.y1) / 2, zb]} color={C.wallBack} />
       {/* left wall */}
-      <Box args={[t, H, 7.4]} position={[-4.6, H / 2, -0.1]} color={C.wallLeft} />
+      <Box args={[t, H, DOOR.z0 + 3.8]} position={[-4.6, H / 2, (-3.8 + DOOR.z0) / 2]} color={C.wallLeft} />
+      <Box args={[t, H, 3.6 - DOOR.z1]} position={[-4.6, H / 2, (DOOR.z1 + 3.6) / 2]} color={C.wallLeft} />
+      <Box args={[t, H - DOOR.h, DOOR.z1 - DOOR.z0]} position={[-4.6, (H + DOOR.h) / 2, (DOOR.z0 + DOOR.z1) / 2]} color={C.wallLeft} />
+      {/* door frame */}
+      <Box args={[0.26, 0.08, DOOR.z1 - DOOR.z0 + 0.16]} position={[-4.6, DOOR.h + 0.04, (DOOR.z0 + DOOR.z1) / 2]} color={C.trim} />
+      <Box args={[0.26, DOOR.h, 0.08]} position={[-4.6, DOOR.h / 2, DOOR.z0 - 0.04]} color={C.trim} />
+      <Box args={[0.26, DOOR.h, 0.08]} position={[-4.6, DOOR.h / 2, DOOR.z1 + 0.04]} color={C.trim} />
+      {/* doormat */}
+      <Box args={[0.6, 0.02, 0.9]} position={[-4.1, 0.011, (DOOR.z0 + DOOR.z1) / 2]} color="#6b5a48" cast={false} />
       {/* wall caps (cut-away look) */}
       <Box args={[9.4, 0.06, t + 0.04]} position={[-0.1, H + 0.03, zb]} color={C.trim} />
       <Box args={[t + 0.04, 0.06, 7.4]} position={[-4.6, H + 0.03, -0.1]} color={C.trim} />
       {/* baseboards */}
       <Box args={[9, 0.14, 0.04]} position={[0, 0.07, -3.48]} color={C.trim} cast={false} />
-      <Box args={[0.04, 0.14, 7]} position={[-4.48, 0.07, 0]} color={C.trim} cast={false} />
+      <Box args={[0.04, 0.14, DOOR.z0 + 3.5]} position={[-4.48, 0.07, (-3.5 + DOOR.z0) / 2]} color={C.trim} cast={false} />
+      <Box args={[0.04, 0.14, 3.5 - DOOR.z1]} position={[-4.48, 0.07, (DOOR.z1 + 3.5) / 2]} color={C.trim} cast={false} />
       {/* window frame + sill + mullions */}
       <Box args={[winW + 0.16, 0.08, 0.3]} position={[winCx, WIN.y0 - 0.02, -3.5]} color={C.trim} />
       <Box args={[winW + 0.16, 0.08, 0.26]} position={[winCx, WIN.y1 + 0.04, -3.55]} color={C.trim} />

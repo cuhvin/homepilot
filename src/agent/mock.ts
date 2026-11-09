@@ -29,7 +29,6 @@ export function mockPlan(request: string): string {
       steps: [
         { device: 'living.tv', action: 'set', params: { on: false }, reason: 'Nobody watching' },
         { device: 'living.ceiling', action: 'set', params: { on: false }, reason: 'Save energy' },
-        { device: 'kitchen.light', action: 'set', params: { on: false }, reason: 'Save energy' },
         { device: 'entry.frontdoor', action: 'lock', params: {}, reason: 'Secure the entry' },
         { device: 'garage.door', action: 'close', params: {}, reason: 'Secure the garage' },
         { device: 'home.thermostat', action: 'set', params: { mode: 'eco', target: 64 }, reason: 'Eco mode while away' },
@@ -54,21 +53,42 @@ export function mockPlan(request: string): string {
       message: "I'll disarm and unlock at 3 PM and lock up at 4. Please confirm the security steps. (mock LLM)",
     });
   }
-  if (q.includes('morning') || q.includes('coffee')) {
+  if (q.includes('garage')) {
+    return R({
+      kind: 'plan',
+      understanding: 'Open the garage for a delivery, then close it again.',
+      steps: [
+        { device: 'garage.door', action: 'open', params: {}, reason: 'Courier can drop the package inside' },
+        { device: 'garage.door', action: 'close', params: {}, reason: 'Re-secure after the drop-off', schedule: { in_minutes: 15 } },
+      ],
+      checks: ['Opening the garage is SENSITIVE and needs confirmation.', '(mock response)'],
+      message: "I'll open the garage now and close it in 15 minutes. Please confirm opening it. (mock LLM)",
+    });
+  }
+  if (q.includes('camera')) {
+    return R({
+      kind: 'plan',
+      understanding: 'Turn the security cameras off.',
+      steps: [{ device: 'home.cameras', action: 'off', params: {}, reason: 'Resident asked for privacy' }],
+      checks: ['Turning cameras off is SENSITIVE and needs confirmation.', '(mock response)'],
+      message: 'I can switch the cameras off. Please confirm, since that pauses recording. (mock LLM)',
+    });
+  }
+  if (q.includes('morning')) {
     return R({
       kind: 'plan',
       understanding: 'Weekday morning routine at 7:00.',
       steps: [
-        { device: 'kitchen.coffee', action: 'brew', params: {}, reason: 'Coffee ready on wake-up', schedule: { at: '06:55', repeat: 'weekdays' } },
+        { device: 'living.speaker', action: 'set', params: { on: true, playlist: 'Morning Acoustic', volume: 25 }, reason: 'Gentle wake-up music', schedule: { at: '07:00', repeat: 'weekdays' } },
         { device: 'living.blinds', action: 'set', params: { position: 100 }, reason: 'Let the morning light in', schedule: { at: '07:00', repeat: 'weekdays' } },
         { device: 'home.thermostat', action: 'set', params: { mode: 'heat', target: 71 }, reason: 'Warm house in the morning', schedule: { at: '06:30', repeat: 'weekdays' } },
       ],
       checks: ['No sensitive steps.', '(mock response)'],
-      message: 'Weekday mornings: heat at 6:30, coffee at 6:55, blinds up at 7. (mock LLM)',
+      message: 'Weekday mornings: heat at 6:30, then blinds up and music at 7. (mock LLM)',
     });
   }
   if (q.includes('pizza') || q.includes('order')) {
-    return R({ kind: 'refuse', understanding: 'Order food.', steps: [], checks: ['(mock response)'], message: "I can't order food, but I can preheat the oven. (mock LLM)" });
+    return R({ kind: 'refuse', understanding: 'Order food.', steps: [], checks: ['(mock response)'], message: "I can't order food, but I can set the mood for dinner. (mock LLM)" });
   }
   return R({
     kind: 'clarify',

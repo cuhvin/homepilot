@@ -7,9 +7,9 @@ import * as THREE from 'three';
 import { useStore } from '../../store';
 import { DEVICE_BY_ID } from '../../home/devices';
 import { describeDevice, daylight, minuteOfDay } from '../../home/state';
-import type { LightState, TvState, SpeakerState, BlindsState, VacuumState, ThermostatState } from '../../home/state';
+import type { LightState, TvState, SpeakerState, BlindsState, VacuumState, ThermostatState, LockState, AlarmState, CameraState } from '../../home/state';
 import { C, skyColor } from './materials';
-import { WIN, H } from './Room';
+import { WIN, H, DOOR } from './Room';
 
 const damp = THREE.MathUtils.damp;
 
@@ -430,6 +430,124 @@ function Vacuum() {
   );
 }
 
+// ---------------- front door + alarm keypad + camera ----------------
+
+function FrontDoor() {
+  const s = useDevice<LockState>('entry.frontdoor');
+  const now = useStore((st) => st.now);
+  const hinge = useRef<THREE.Group>(null!);
+  const led = useRef<THREE.MeshBasicMaterial>(null!);
+  const outside = useRef<THREE.MeshBasicMaterial>(null!);
+  const w = DOOR.z1 - DOOR.z0 - 0.02;
+  useFrame(({ clock }, dt) => {
+    // unlocked = door swings open so the change is obvious in the demo
+    hinge.current.rotation.y = damp(hinge.current.rotation.y, s.locked ? 0 : 1.15, 2.5, dt);
+    const blink = s.locked ? 1 : 0.6 + 0.6 * Math.max(0, Math.sin(clock.elapsedTime * 5));
+    led.current.color.set(s.locked ? '#59e07a' : '#ffb547').multiplyScalar(1.5 * blink);
+    outside.current.color.copy(skyColor(daylight(now), minuteOfDay(now))).multiplyScalar(0.8);
+  });
+  return (
+    <Interactive id="entry.frontdoor" anchor={[-4.3, DOOR.h + 0.45, (DOOR.z0 + DOOR.z1) / 2]}>
+      <group>
+        {/* the porch seen through the doorway */}
+        <mesh position={[-4.72, DOOR.h / 2, (DOOR.z0 + DOOR.z1) / 2]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[DOOR.z1 - DOOR.z0, DOOR.h]} />
+          <meshBasicMaterial ref={outside} toneMapped={false} />
+        </mesh>
+        <group ref={hinge} position={[-4.55, 0, DOOR.z0 + 0.01]}>
+          <RoundedBox args={[0.06, DOOR.h - 0.02, w]} radius={0.015} position={[0, DOOR.h / 2, w / 2]} castShadow receiveShadow>
+            <meshStandardMaterial color="#3f6e8c" roughness={0.6} />
+          </RoundedBox>
+          {[0.55, 1.45].map((y) => (
+            <mesh key={y} position={[0.035, y, w / 2]}>
+              <boxGeometry args={[0.01, 0.6, w - 0.3]} />
+              <meshStandardMaterial color="#365f79" roughness={0.6} />
+            </mesh>
+          ))}
+          {[-1, 1].map((side) => (
+            <mesh key={side} position={[side * 0.06, 1.0, w - 0.12]} rotation={[0, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.025, 0.025, 0.06, 10]} />
+              <meshStandardMaterial color="#d8b25a" metalness={0.8} roughness={0.3} />
+            </mesh>
+          ))}
+        </group>
+        {/* smart-lock status light on the frame */}
+        <mesh position={[-4.46, 1.15, DOOR.z1 + 0.06]}>
+          <boxGeometry args={[0.02, 0.12, 0.05]} />
+          <meshBasicMaterial ref={led} toneMapped={false} />
+        </mesh>
+      </group>
+    </Interactive>
+  );
+}
+
+const ALARM_COLORS = { off: '#7cb7ff', home: '#ffb547', away: '#ff5a5a' } as const;
+
+function AlarmKeypad() {
+  const s = useDevice<AlarmState>('home.alarm');
+  const screen = useRef<THREE.MeshBasicMaterial>(null!);
+  useFrame(({ clock }) => {
+    const pulse = s.mode === 'off' ? 0.9 : 1.2 + Math.sin(clock.elapsedTime * 2.5) * 0.5;
+    screen.current.color.set(ALARM_COLORS[s.mode]).multiplyScalar(pulse);
+  });
+  return (
+    <Interactive id="home.alarm" anchor={[-4.3, 1.95, -1.45]}>
+      <group position={[-4.47, 1.4, -1.45]}>
+        <RoundedBox args={[0.05, 0.36, 0.26]} radius={0.02} castShadow>
+          <meshStandardMaterial color="#f4f2ee" roughness={0.3} />
+        </RoundedBox>
+        <mesh position={[0.03, 0.08, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[0.18, 0.09]} />
+          <meshBasicMaterial ref={screen} toneMapped={false} />
+        </mesh>
+        {[-0.06, 0, 0.06].flatMap((z) => [-0.04, -0.1].map((y) => (
+          <mesh key={`${z}${y}`} position={[0.03, y, z]}>
+            <boxGeometry args={[0.01, 0.035, 0.035]} />
+            <meshStandardMaterial color="#c9c4bb" />
+          </mesh>
+        )))}
+      </group>
+    </Interactive>
+  );
+}
+
+function SecurityCamera() {
+  const s = useDevice<CameraState>('home.cameras');
+  const head = useRef<THREE.Group>(null!);
+  const led = useRef<THREE.MeshBasicMaterial>(null!);
+  useFrame(({ clock }, dt) => {
+    const t = clock.elapsedTime;
+    // recording: slow pan; off: "privacy mode", lens tilted to the floor
+    head.current.rotation.y = damp(head.current.rotation.y, s.on ? -1.95 + Math.sin(t * 0.4) * 0.35 : -1.95, 3, dt);
+    head.current.rotation.z = damp(head.current.rotation.z, s.on ? -0.45 : -1.35, 3, dt);
+    const on = s.on && Math.sin(t * 4) > -0.2;
+    led.current.color.set(on ? '#ff3b3b' : '#2a2a2a').multiplyScalar(on ? 2 : 1);
+  });
+  return (
+    <Interactive id="home.cameras" anchor={[1.6, 3.45, -3.2]}>
+      <group position={[1.6, 2.95, -3.32]}>
+        <mesh position={[0, 0.08, -0.08]}>
+          <boxGeometry args={[0.08, 0.08, 0.2]} />
+          <meshStandardMaterial color="#e9e9ee" />
+        </mesh>
+        <group ref={head} rotation={[0, -1.95, -0.45]}>
+          <RoundedBox args={[0.34, 0.15, 0.15]} radius={0.04} position={[0.14, 0, 0]} castShadow>
+            <meshStandardMaterial color="#f4f4f6" roughness={0.3} />
+          </RoundedBox>
+          <mesh position={[0.32, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.05, 0.05, 0.03, 16]} />
+            <meshStandardMaterial color="#1b1b20" roughness={0.2} metalness={0.4} />
+          </mesh>
+          <mesh position={[0.3, 0.06, 0.05]}>
+            <sphereGeometry args={[0.016, 8, 8]} />
+            <meshBasicMaterial ref={led} toneMapped={false} />
+          </mesh>
+        </group>
+      </group>
+    </Interactive>
+  );
+}
+
 export function Devices() {
   return (
     <group>
@@ -441,6 +559,9 @@ export function Devices() {
       <WindowAndBlinds />
       <Thermostat />
       <Vacuum />
+      <FrontDoor />
+      <AlarmKeypad />
+      <SecurityCamera />
     </group>
   );
 }

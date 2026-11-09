@@ -5,11 +5,11 @@ import type { HomeState } from '../home/state';
 
 export function homeStatus(h: HomeState): string[] {
   const out: string[] = [];
-  const lights = ['living.ceiling', 'living.lamp', 'living.strip', 'kitchen.light', 'bedroom.light'].filter((id) => {
+  const lights = ['living.ceiling', 'living.lamp', 'living.strip'].filter((id) => {
     const s = h[id];
     return s?.kind === 'light' && s.on;
   }).length;
-  out.push(`💡 ${lights}/5 lights`);
+  out.push(`💡 ${lights}/3 lights`);
   const t = h['home.thermostat'];
   if (t?.kind === 'thermostat') out.push(`🌡️ ${Math.round(t.current)}°F → ${t.target}°`);
   const door = h['entry.frontdoor'];

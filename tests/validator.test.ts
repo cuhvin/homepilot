@@ -58,10 +58,9 @@ describe('validator: clamps and repairs', () => {
     expect(v.params.on).toBe(true);
   });
 
-  it('adds a safety timer to the oven when missing', () => {
-    const v = validateStep(step({ device: 'kitchen.oven', action: 'preheat', params: { temp: 375 } }), 0, home);
-    expect(v.params.timer_min).toBe(60);
-    expect(v.warnings.join(' ')).toMatch(/auto-off/);
+  it('blocks devices that were removed from the home', () => {
+    const v = validateStep(step({ device: 'kitchen.oven', action: 'preheat' }), 0, home);
+    expect(v.blocked).toBe(true);
   });
 
   it('drops parameters the action does not use', () => {
@@ -73,8 +72,8 @@ describe('validator: clamps and repairs', () => {
 
 describe('risk tiers', () => {
   it('marks security actions as sensitive (never auto-run)', () => {
-    for (const [device, action] of [['entry.frontdoor', 'unlock'], ['garage.door', 'open'], ['home.alarm', 'disarm'], ['home.cameras', 'off'], ['kitchen.oven', 'preheat']]) {
-      const v = validateStep(step({ device, action, params: action === 'preheat' ? { temp: 350 } : {} }), 0, home);
+    for (const [device, action] of [['entry.frontdoor', 'unlock'], ['garage.door', 'open'], ['home.alarm', 'disarm'], ['home.cameras', 'off']]) {
+      const v = validateStep(step({ device, action }), 0, home);
       expect(v.risk, `${device} ${action}`).toBe('sensitive');
       expect(needsConfirmation(v)).toBe(true);
     }
@@ -101,7 +100,7 @@ describe('parser: malformed LLM output', () => {
     expect(r.ok).toBe(true);
   });
   it('parses every mock response', () => {
-    for (const q of ['movie night', 'leaving for the weekend', 'dog walker', 'morning coffee', 'order pizza', 'turn it up']) {
+    for (const q of ['movie night', 'leaving for the weekend', 'dog walker', 'weekday morning', 'open the garage', 'turn off the cameras', 'order pizza', 'turn it up']) {
       expect(parseAgentResponse(mockPlan(q)).ok, q).toBe(true);
     }
   });
@@ -117,10 +116,11 @@ describe('executor + scheduling', () => {
     expect(later.events[0].message).toMatch(/auto-relocked/);
   });
 
-  it('oven turns itself off when the timer ends', () => {
-    const v = validateStep(step({ device: 'kitchen.oven', action: 'preheat', params: { temp: 400, timer_min: 20 } }), 0, home);
-    const on = applyStep(home, v).home;
-    expect(tickHome(on, 20).home['kitchen.oven']).toMatchObject({ on: false });
+  it('thermostat drifts toward its target over time', () => {
+    const v = validateStep(step({ device: 'home.thermostat', params: { target: 64, mode: 'cool' } }), 0, home);
+    const set = applyStep(home, v).home;
+    const later = tickHome(set, 120).home['home.thermostat'];
+    expect(later.kind === 'thermostat' && later.current).toBeLessThan(66);
   });
 
   it('never executes a blocked step', () => {

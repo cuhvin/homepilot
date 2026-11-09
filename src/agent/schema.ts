@@ -15,9 +15,6 @@ export interface StepParams {
   playlist?: string;
   target?: number;
   mode?: string;
-  temp?: number;
-  timer_min?: number;
-  minutes?: number;
 }
 
 export interface StepSchedule {
@@ -66,9 +63,6 @@ export const RESPONSE_JSON_SCHEMA = {
               playlist: { type: 'string' },
               target: { type: 'number' },
               mode: { type: 'string' },
-              temp: { type: 'integer' },
-              timer_min: { type: 'integer' },
-              minutes: { type: 'integer' },
             },
           },
           reason: { type: 'string', description: 'Why this step serves the goal (max 12 words).' },

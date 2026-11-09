@@ -40,16 +40,16 @@ proposal, never as a command to run blindly.
 | LLM integration (API, errors, rate limits) | `src/agent/llm.ts`, `api/plan.ts` |
 | Parse LLM output into commands | `src/agent/schema.ts` |
 | Validate before execution | `src/agent/validator.ts` |
-| Execute actions across domains (lighting, media, climate, security, appliances, scheduling) | `src/agent/executor.ts` |
+| Execute actions across domains (lighting, media, climate, security, cleaning, scheduling) | `src/agent/executor.ts` |
 | Confirmation for destructive/sensitive operations | `src/store.ts`, `src/ui/PlanCard.tsx` |
 | Audit log | `src/agent/log.ts`, the Audit log tab (download as JSON), and server logs |
 | UI | `src/ui/*`, `src/ui/scene/*` (React Three Fiber) |
 
 ### Safety layers
 1. **Catalog allow-list.** Unknown devices or actions are blocked, so the LLM cannot invent capabilities.
-2. **Type and range checks.** Thermostat values are clamped to 60–85 °F, brightness to 0–100, and the oven to at most 500 °F. Unused params are dropped.
-3. **Risk tiers.** Unlocking, opening the garage, disarming the alarm, turning cameras off and preheating the oven are *sensitive*. They never run without a click.
-4. **Physical safety defaults.** The oven always has an auto-off timer, and the front door auto-relocks after 15 minutes.
+2. **Type and range checks.** Thermostat values are clamped to 60–85 °F and brightness to 0–100. Unused params are dropped.
+3. **Risk tiers.** Unlocking the front door, opening the garage, disarming the alarm and turning cameras off are *sensitive*. They never run without a click.
+4. **Physical safety defaults.** The front door auto-relocks after 15 minutes.
 5. **Plan limits.** At most 16 steps; no-op and duplicate steps are flagged.
 6. **Server protections.** The API key stays server-side. Input length is capped, client state is sanitized, and each IP is rate-limited.
 
@@ -61,7 +61,7 @@ proposal, never as a command to run blindly.
 ## Prompt engineering techniques
 All prompts are in [`src/agent/prompts.ts`](src/agent/prompts.ts).
 
-1. **Persona and rules.** HomePilot is a careful, warm home assistant with 10 explicit rules.
+1. **Persona and rules.** HomePilot is a careful, warm home assistant with 9 explicit rules.
 2. **Generated tool catalog.** The device and action list is built from `devices.ts`, so the prompt can never drift from what the code accepts.
 3. **Context injection.** The live home state and the simulated time are sent with every request.
 4. **Plan-then-act.** The model writes `understanding` first, then `steps`, each with a `reason`.
@@ -92,4 +92,5 @@ npm test                        # validator, executor, scheduling and API tests
 
 ## Notes
 - The 3D room is built entirely in code from React Three Fiber primitives: no external model files, and every texture is drawn on a canvas.
+- Every device the agent controls is visible in the 3D room (lights, blinds, TV, speaker, vacuum, thermostat, front door, alarm keypad, camera), except the garage, which appears as a status card.
 - Gemini free tier: Google may use free-tier prompts to improve its products, so don't type personal information into the demo.

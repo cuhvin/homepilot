@@ -12,13 +12,10 @@ export interface LockState { kind: 'lock'; locked: boolean; relockIn: number }
 export interface GarageState { kind: 'garage'; open: boolean }
 export interface AlarmState { kind: 'alarm'; mode: 'off' | 'home' | 'away' }
 export interface CameraState { kind: 'camera'; on: boolean }
-export interface OvenState { kind: 'oven'; on: boolean; temp: number; minutesLeft: number }
-export interface CoffeeState { kind: 'coffee'; brewing: boolean; minutesLeft: number; ready: boolean }
-export interface SprinklerState { kind: 'sprinkler'; on: boolean; minutesLeft: number }
 
 export type DeviceState =
   | LightState | BlindsState | TvState | SpeakerState | VacuumState | ThermostatState
-  | LockState | GarageState | AlarmState | CameraState | OvenState | CoffeeState | SprinklerState;
+  | LockState | GarageState | AlarmState | CameraState;
 
 export type HomeState = Record<string, DeviceState>;
 
@@ -32,15 +29,10 @@ export function initialHome(): HomeState {
     'living.speaker': { kind: 'speaker', on: false, playlist: 'Lo-fi Evening', volume: 30 },
     'living.vacuum': { kind: 'vacuum', running: false, minutesLeft: 0 },
     'home.thermostat': { kind: 'thermostat', target: 70, mode: 'auto', current: 72 },
-    'kitchen.light': { kind: 'light', on: true, brightness: 90, color: '#fff4e5' },
-    'kitchen.oven': { kind: 'oven', on: false, temp: 350, minutesLeft: 0 },
-    'kitchen.coffee': { kind: 'coffee', brewing: false, minutesLeft: 0, ready: false },
-    'bedroom.light': { kind: 'light', on: false, brightness: 50, color: '#ffc98a' },
     'entry.frontdoor': { kind: 'lock', locked: true, relockIn: 0 },
     'garage.door': { kind: 'garage', open: false },
     'home.alarm': { kind: 'alarm', mode: 'off' },
     'home.cameras': { kind: 'camera', on: true },
-    'yard.sprinklers': { kind: 'sprinkler', on: false, minutesLeft: 0 },
   };
 }
 
@@ -57,9 +49,6 @@ export function describeDevice(s: DeviceState): string {
     case 'garage': return s.open ? 'OPEN' : 'closed';
     case 'alarm': return s.mode === 'off' ? 'disarmed' : `armed (${s.mode})`;
     case 'camera': return s.on ? 'recording' : 'OFF';
-    case 'oven': return s.on ? `on at ${s.temp}F, auto-off in ${s.minutesLeft} min` : 'off';
-    case 'coffee': return s.brewing ? `brewing (${s.minutesLeft} min)` : s.ready ? 'coffee ready' : 'off';
-    case 'sprinkler': return s.on ? `watering (${s.minutesLeft} min left)` : 'off';
   }
 }
 

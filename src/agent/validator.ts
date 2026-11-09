@@ -100,13 +100,6 @@ export function validateStep(step: PlanStep, index: number, home: HomeState): Va
     }
     if (params.on === undefined) params.on = params.brightness === undefined ? true : params.brightness > 0;
   }
-  if (info.kind === 'oven' && step.action === 'preheat' && params.timer_min === undefined) {
-    params.timer_min = 60;
-    base.warnings.push('Added a 60-minute safety auto-off timer.');
-  }
-  if (info.kind === 'sprinkler' && step.action === 'start' && params.minutes === undefined) {
-    params.minutes = 10;
-  }
   if ((info.kind === 'tv' || info.kind === 'speaker') && params.on === undefined) params.on = true;
   base.params = params;
 

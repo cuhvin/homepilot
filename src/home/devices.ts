@@ -14,10 +14,7 @@ export type DeviceKind =
   | 'lock'
   | 'garage'
   | 'alarm'
-  | 'camera'
-  | 'oven'
-  | 'coffee'
-  | 'sprinkler';
+  | 'camera';
 
 export type ParamName =
   | 'on'
@@ -28,10 +25,7 @@ export type ParamName =
   | 'input'
   | 'playlist'
   | 'target'
-  | 'mode'
-  | 'temp'
-  | 'timer_min'
-  | 'minutes';
+  | 'mode';
 
 export interface ActionSpec {
   params: ParamName[];
@@ -56,15 +50,10 @@ export const DEVICES: DeviceInfo[] = [
   { id: 'living.speaker', kind: 'speaker', room: 'Living room', label: 'Speaker' },
   { id: 'living.vacuum', kind: 'vacuum', room: 'Living room', label: 'Robot vacuum' },
   { id: 'home.thermostat', kind: 'thermostat', room: 'Whole home', label: 'Thermostat' },
-  { id: 'kitchen.light', kind: 'light', room: 'Kitchen', label: 'Kitchen lights' },
-  { id: 'kitchen.oven', kind: 'oven', room: 'Kitchen', label: 'Oven' },
-  { id: 'kitchen.coffee', kind: 'coffee', room: 'Kitchen', label: 'Coffee maker' },
-  { id: 'bedroom.light', kind: 'light', room: 'Bedroom', label: 'Bedroom lights' },
-  { id: 'entry.frontdoor', kind: 'lock', room: 'Entry', label: 'Front door lock' },
+  { id: 'entry.frontdoor', kind: 'lock', room: 'Living room', label: 'Front door lock' },
   { id: 'garage.door', kind: 'garage', room: 'Garage', label: 'Garage door' },
   { id: 'home.alarm', kind: 'alarm', room: 'Whole home', label: 'Security alarm' },
   { id: 'home.cameras', kind: 'camera', room: 'Whole home', label: 'Security cameras' },
-  { id: 'yard.sprinklers', kind: 'sprinkler', room: 'Yard', label: 'Sprinklers' },
 ];
 
 export const DEVICE_BY_ID: Record<string, DeviceInfo> = Object.fromEntries(
@@ -107,18 +96,6 @@ export const ACTIONS: Record<DeviceKind, Record<string, ActionSpec>> = {
     on: { params: [], risk: 'safe', describe: 'turn cameras on' },
     off: { params: [], risk: 'sensitive', describe: 'turn cameras off' },
   },
-  oven: {
-    preheat: { params: ['temp', 'timer_min'], required: ['temp'], risk: 'sensitive', describe: 'preheat to temp 200-500 F, timer_min 1-180 (auto-off)' },
-    off: { params: [], risk: 'safe', describe: 'turn oven off' },
-  },
-  coffee: {
-    brew: { params: [], risk: 'notable', describe: 'brew a pot of coffee (takes 5 min)' },
-    off: { params: [], risk: 'safe', describe: 'turn coffee maker off' },
-  },
-  sprinkler: {
-    start: { params: ['minutes'], risk: 'notable', describe: 'water the yard, minutes 1-60 (default 10)' },
-    stop: { params: [], risk: 'safe', describe: 'stop watering' },
-  },
 };
 
 export const TV_INPUTS = ['movies', 'news', 'sports', 'gaming', 'music'] as const;
@@ -149,9 +126,6 @@ export const RANGES: Partial<Record<ParamName, [number, number]>> = {
   position: [0, 100],
   volume: [0, 100],
   target: [60, 85],
-  temp: [200, 500],
-  timer_min: [1, 180],
-  minutes: [1, 60],
 };
 
 export const MAX_STEPS = 16;

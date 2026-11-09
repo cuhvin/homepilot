@@ -61,20 +61,6 @@ export function applyStep(home: HomeState, step: ValidatedStep): ExecResult {
       next = { ...cur, on: step.action === 'on' };
       msg = `cameras ${next.on ? 'on' : 'off'}`;
       break;
-    case 'oven':
-      next = step.action === 'preheat'
-        ? { ...cur, on: true, temp: p.temp ?? cur.temp, minutesLeft: p.timer_min ?? 60 }
-        : { ...cur, on: false, minutesLeft: 0 };
-      msg = next.on ? `oven ${next.temp}F, auto-off in ${next.minutesLeft} min` : 'oven off';
-      break;
-    case 'coffee':
-      next = step.action === 'brew' ? { ...cur, brewing: true, minutesLeft: 5, ready: false } : { ...cur, brewing: false, minutesLeft: 0, ready: false };
-      msg = step.action === 'brew' ? 'brewing coffee' : 'coffee maker off';
-      break;
-    case 'sprinkler':
-      next = step.action === 'start' ? { ...cur, on: true, minutesLeft: p.minutes ?? 10 } : { ...cur, on: false, minutesLeft: 0 };
-      msg = next.on ? `sprinklers on for ${next.minutesLeft} min` : 'sprinklers off';
-      break;
   }
   return { home: { ...home, [step.device]: next }, ok: true, message: msg };
 }
@@ -88,13 +74,6 @@ export function tickHome(home: HomeState, minutes: number): { home: HomeState; e
   const next: HomeState = { ...home };
   for (const [id, s] of Object.entries(home)) {
     switch (s.kind) {
-      case 'oven':
-        if (s.on) {
-          const left = s.minutesLeft - minutes;
-          next[id] = left <= 0 ? { ...s, on: false, minutesLeft: 0 } : { ...s, minutesLeft: left };
-          if (left <= 0) events.push({ device: id, message: 'Oven timer finished: auto-off (safety).' });
-        }
-        break;
       case 'lock':
         if (!s.locked && s.relockIn > 0) {
           const left = s.relockIn - minutes;
@@ -107,20 +86,6 @@ export function tickHome(home: HomeState, minutes: number): { home: HomeState; e
           const left = s.minutesLeft - minutes;
           next[id] = left <= 0 ? { ...s, running: false, minutesLeft: 0 } : { ...s, minutesLeft: left };
           if (left <= 0) events.push({ device: id, message: 'Robot vacuum finished and docked.' });
-        }
-        break;
-      case 'coffee':
-        if (s.brewing) {
-          const left = s.minutesLeft - minutes;
-          next[id] = left <= 0 ? { ...s, brewing: false, minutesLeft: 0, ready: true } : { ...s, minutesLeft: left };
-          if (left <= 0) events.push({ device: id, message: 'Coffee is ready.' });
-        }
-        break;
-      case 'sprinkler':
-        if (s.on) {
-          const left = s.minutesLeft - minutes;
-          next[id] = left <= 0 ? { ...s, on: false, minutesLeft: 0 } : { ...s, minutesLeft: left };
-          if (left <= 0) events.push({ device: id, message: 'Sprinklers finished.' });
         }
         break;
       case 'thermostat': {

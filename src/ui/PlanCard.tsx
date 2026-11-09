@@ -15,9 +15,6 @@ export function summarizeStep(s: StepRun): string {
   if (p.volume !== undefined) parts.push(`vol ${p.volume}`);
   if (p.mode) parts.push(p.mode);
   if (p.target !== undefined) parts.push(`${p.target}°F`);
-  if (p.temp !== undefined) parts.push(`${p.temp}°F`);
-  if (p.timer_min !== undefined) parts.push(`auto-off ${p.timer_min}m`);
-  if (p.minutes !== undefined) parts.push(`${p.minutes} min`);
   const action = s.action === 'set' ? '' : s.action;
   return [action, parts.join(', ')].filter(Boolean).join(' · ');
 }

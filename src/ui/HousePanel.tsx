@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import {
-  Lock, LockOpen, Warehouse, ShieldCheck, ShieldOff, Cctv, CameraOff, Thermometer, Flame, Coffee,
-  Lightbulb, Droplets, CalendarClock,
+  Lock, LockOpen, Warehouse, ShieldCheck, ShieldOff, Cctv, CameraOff, Thermometer, CalendarClock,
 } from 'lucide-react';
 import { useStore } from '../store';
 import { formatClock, describeDevice, type DeviceState } from '../home/state';
@@ -20,11 +19,6 @@ const CARDS: CardSpec[] = [
   { id: 'garage.door', title: 'Garage', icon: () => <Warehouse />, tone: (s) => (s.kind === 'garage' && s.open ? 'warn' : 'ok') },
   { id: 'home.cameras', title: 'Cameras', icon: (s) => (s.kind === 'camera' && !s.on ? <CameraOff /> : <Cctv />), tone: (s) => (s.kind === 'camera' && !s.on ? 'warn' : 'ok') },
   { id: 'home.thermostat', title: 'Thermostat', icon: () => <Thermometer />, tone: () => 'active' },
-  { id: 'kitchen.oven', title: 'Oven', icon: () => <Flame />, tone: (s) => (s.kind === 'oven' && s.on ? 'warn' : 'idle') },
-  { id: 'kitchen.coffee', title: 'Coffee', icon: () => <Coffee />, tone: (s) => (s.kind === 'coffee' && (s.brewing || s.ready) ? 'active' : 'idle') },
-  { id: 'kitchen.light', title: 'Kitchen light', icon: () => <Lightbulb />, tone: (s) => (s.kind === 'light' && s.on ? 'active' : 'idle') },
-  { id: 'bedroom.light', title: 'Bedroom light', icon: () => <Lightbulb />, tone: (s) => (s.kind === 'light' && s.on ? 'active' : 'idle') },
-  { id: 'yard.sprinklers', title: 'Sprinklers', icon: () => <Droplets />, tone: (s) => (s.kind === 'sprinkler' && s.on ? 'active' : 'idle') },
 ];
 
 export function HousePanel() {
@@ -36,7 +30,7 @@ export function HousePanel() {
   const upcoming = [...tasks].sort((a, b) => a.runAt - b.runAt).slice(0, 5);
 
   return (
-    <section className="house" aria-label="Rest of the house">
+    <section className="house" aria-label="Security and climate">
       <div className="house__grid">
         {CARDS.map((c) => {
           const s = home[c.id];
@@ -73,15 +67,12 @@ export function HousePanel() {
 
 function short(s: DeviceState): string {
   switch (s.kind) {
-    case 'thermostat': return `${Math.round(s.current)}° → ${s.target}° · ${s.mode}`;
+    case 'thermostat': return `${Math.round(s.current)}° → ${s.target}°`;
     case 'light': return s.on ? `on · ${s.brightness}%` : 'off';
-    case 'lock': return s.locked ? 'Locked' : `Unlocked · relock ${s.relockIn}m`;
-    case 'alarm': return s.mode === 'off' ? 'Disarmed' : `Armed · ${s.mode}`;
+    case 'lock': return s.locked ? 'Locked' : `Unlocked ${s.relockIn}m`;
+    case 'alarm': return s.mode === 'off' ? 'Disarmed' : `Armed ${s.mode}`;
     case 'garage': return s.open ? 'Open' : 'Closed';
     case 'camera': return s.on ? 'Recording' : 'Off';
-    case 'oven': return s.on ? `${s.temp}° · ${s.minutesLeft}m left` : 'Off';
-    case 'coffee': return s.brewing ? `Brewing · ${s.minutesLeft}m` : s.ready ? 'Ready ☕' : 'Off';
-    case 'sprinkler': return s.on ? `Watering · ${s.minutesLeft}m` : 'Off';
     default: return describeDevice(s);
   }
 }
