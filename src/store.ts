@@ -52,6 +52,8 @@ interface Store {
   busy: boolean;
   cooldownUntil: number; // epoch ms, set after a 429
   highlight: string | null;
+  /** the dog is out for a walk (taken by the dog walker in the street view) */
+  dogOut: boolean;
 
   send: (text: string) => Promise<void>;
   confirmStep: (planId: string, index: number) => void;
@@ -60,6 +62,7 @@ interface Store {
   advance: (simMinutes: number) => void;
   setSpeed: (s: number) => void;
   setHighlight: (id: string | null) => void;
+  setDogOut: (out: boolean) => void;
   resetHome: () => void;
   clearLog: () => void;
 }
@@ -123,6 +126,7 @@ export const useStore = create<Store>((set, get) => {
     busy: false,
     cooldownUntil: 0,
     highlight: null,
+    dogOut: false,
 
     async send(text) {
       const request = text.trim();
@@ -247,11 +251,15 @@ export const useStore = create<Store>((set, get) => {
     setSpeed(s) {
       set({ speed: s });
     },
+    setDogOut(out) {
+      set({ dogOut: out });
+      log('event', out ? 'Dog walker picked up the dog.' : 'Dog walker brought the dog home.');
+    },
     setHighlight(id) {
       set({ highlight: id });
     },
     resetHome() {
-      set({ home: initialHome(), now: START_MINUTES, tasks: [], plans: {}, chat: [] });
+      set({ home: initialHome(), now: START_MINUTES, tasks: [], plans: {}, chat: [], dogOut: false });
       log('system', 'Home reset to defaults.');
     },
     clearLog() {

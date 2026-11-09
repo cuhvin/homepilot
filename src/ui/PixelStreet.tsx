@@ -34,7 +34,7 @@ function shade(c: string, light: number) {
   return mix('#141a3a', c, 0.35 + 0.65 * light);
 }
 
-interface Actor { x: number; visible: boolean; frame: number }
+interface Actor { x: number; visible: boolean; frame: number; withDog?: boolean; arrived?: boolean }
 interface Car { x: number; dir: 1 | -1; color: string; speed: number }
 
 export function PixelStreet() {
@@ -72,6 +72,8 @@ export function PixelStreet() {
     let tick = 0;
     let raf = 0;
     let last = 0;
+    let wasUnlocked = false;
+    let k = 1; // frame-time factor so movement speed doesn't depend on frame rate
 
     const px = (x: number, y: number, w: number, h: number, c: string) => {
       ctx.fillStyle = c;
@@ -294,9 +296,9 @@ export function PixelStreet() {
       const vanStop = X + 70;
       if (gOpen) {
         if (!van.visible) { van.visible = true; van.x = W + 10; }
-        van.x = Math.max(vanStop, van.x - 1.6);
+        van.x = Math.max(vanStop, van.x - 1.6 * k);
       } else if (van.visible) {
-        van.x -= 1.8;
+        van.x -= 1.8 * k;
         if (van.x < -40) van.visible = false;
       }
       if (van.visible) drawVan(px, van.x, d, tick);
@@ -308,31 +310,46 @@ export function PixelStreet() {
         nextCar = 140 + Math.random() * 220;
       }
       for (const c of cars) {
-        c.x += c.dir * c.speed;
+        c.x += c.dir * c.speed * k;
         drawCar(px, c, d, night);
       }
       for (let i = cars.length - 1; i >= 0; i--) if (cars[i].x < -40 || cars[i].x > W + 40) cars.splice(i, 1);
 
       // ---- dog walker: comes while the front door is unlocked ----
       const stop = dx + 13;
+      if (unlocked && !wasUnlocked && walker.visible) walker.arrived = false; // new visit while still nearby
+      wasUnlocked = unlocked;
       if (unlocked) {
         // start just down the street so they arrive within a few seconds
-        if (!walker.visible) { walker.visible = true; walker.x = Math.min(W + 6, stop + 70); }
-        walker.x = Math.max(stop, walker.x - 1.4);
+        if (!walker.visible) {
+          // brings the dog back if it's out, otherwise comes alone to pick it up
+          walker.visible = true;
+          walker.x = Math.min(W + 6, stop + 70);
+          walker.withDog = useStore.getState().dogOut;
+          walker.arrived = false;
+        }
+        walker.x = Math.max(stop, walker.x - 1.4 * k);
+        if (walker.x <= stop && !walker.arrived) {
+          walker.arrived = true;
+          const st = useStore.getState();
+          if (walker.withDog) { walker.withDog = false; st.setDogOut(false); }
+          else if (!st.dogOut) { walker.withDog = true; st.setDogOut(true); }
+        }
       } else if (walker.visible) {
-        walker.x += 1.4;
+        walker.x += 1.4 * k;
         if (walker.x > W + 20) walker.visible = false;
       }
       if (walker.visible) {
         const moving = !(unlocked && walker.x <= stop);
         if (moving) walker.frame++;
-        drawWalker(px, walker.x, walker.frame, d, tick, !unlocked);
+        drawWalker(px, walker.x, walker.frame, d, tick, !unlocked, Boolean(walker.withDog));
       }
     };
 
     const loop = (t: number) => {
       raf = requestAnimationFrame(loop);
       if (t - last < 1000 / FPS) return;
+      k = last ? Math.min(4, (t - last) / (1000 / FPS)) : 1;
       last = t;
       tick++;
       const s = useStore.getState();
@@ -355,7 +372,7 @@ export function PixelStreet() {
 
 type Px = (x: number, y: number, w: number, h: number, c: string) => void;
 
-function drawWalker(px: Px, x: number, frame: number, d: number, tick: number, facingRight: boolean) {
+function drawWalker(px: Px, x: number, frame: number, d: number, tick: number, facingRight: boolean, withDog: boolean) {
   const f = Math.floor(frame / 4) % 2;
   const y = GROUND + 2; // feet line
   const skin = shade('#e0a77c', d);
@@ -366,6 +383,7 @@ function drawWalker(px: Px, x: number, frame: number, d: number, tick: number, f
   px(x + (facingRight ? 4 : -2), y - 11, 2, 4, skin);
   px(x, y - 6, 2, 6 - (f ? 1 : 0), shade('#2f3550', d));
   px(x + 2, y - 6, 2, 6 - (f ? 0 : 1), shade('#2f3550', d));
+  if (!withDog) return;
   // leash + dog
   const dxo = facingRight ? 6 : -9;
   px(x + (facingRight ? 5 : -3), y - 8, 1, 1, shade('#c4573f', d));

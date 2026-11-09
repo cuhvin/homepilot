@@ -548,6 +548,70 @@ function SecurityCamera() {
   );
 }
 
+// ---------------- the dog (taken out by the dog walker) ----------------
+
+function Dog() {
+  const out = useStore((st) => st.dogOut);
+  const group = useRef<THREE.Group>(null!);
+  const body = useRef<THREE.Mesh>(null!);
+  const tail = useRef<THREE.Group>(null!);
+  useFrame(({ clock }, dt) => {
+    const s = damp(group.current.scale.x, out ? 0.001 : 1, 6, dt);
+    group.current.scale.setScalar(s);
+    group.current.visible = s > 0.01;
+    const t = clock.elapsedTime;
+    body.current.scale.y = 0.16 * (1 + Math.sin(t * 1.6) * 0.05); // sleepy breathing
+    tail.current.rotation.y = Math.sin(t * 0.8) * 0.15;
+  });
+  const fur = '#c08a4e';
+  const dark = '#8a5a32';
+  return (
+    <group ref={group} position={[3.4, 0.1, 2.2]} rotation={[0, 2.4, 0]}>
+      <mesh ref={body} position={[0, 0.12, 0]} scale={[0.34, 0.16, 0.22]} castShadow>
+        <sphereGeometry args={[1, 14, 10]} />
+        <meshStandardMaterial color={fur} roughness={0.9} />
+      </mesh>
+      <group position={[-0.26, 0.17, 0.08]}>
+        <mesh castShadow>
+          <sphereGeometry args={[0.12, 12, 10]} />
+          <meshStandardMaterial color={fur} roughness={0.9} />
+        </mesh>
+        <mesh position={[-0.11, -0.03, 0.02]} castShadow>
+          <boxGeometry args={[0.1, 0.07, 0.08]} />
+          <meshStandardMaterial color="#d9a874" roughness={0.9} />
+        </mesh>
+        <mesh position={[-0.165, -0.01, 0.02]}>
+          <sphereGeometry args={[0.022, 8, 6]} />
+          <meshStandardMaterial color="#2b2b30" />
+        </mesh>
+        {[-0.07, 0.07].map((z) => (
+          <mesh key={z} position={[0.03, 0.07, z]} rotation={[z > 0 ? 0.5 : -0.5, 0, 0.3]} castShadow>
+            <boxGeometry args={[0.06, 0.1, 0.04]} />
+            <meshStandardMaterial color={dark} roughness={0.9} />
+          </mesh>
+        ))}
+        {/* closed eyes */}
+        <mesh position={[-0.09, 0.03, 0.075]}>
+          <boxGeometry args={[0.04, 0.008, 0.01]} />
+          <meshStandardMaterial color="#2b2b30" />
+        </mesh>
+      </group>
+      <group ref={tail} position={[0.3, 0.12, -0.06]}>
+        <mesh position={[0.06, 0, -0.06]} rotation={[0, 0.8, 1.2]} castShadow>
+          <cylinderGeometry args={[0.03, 0.02, 0.2, 6]} />
+          <meshStandardMaterial color={dark} roughness={0.9} />
+        </mesh>
+      </group>
+      {[[-0.18, 0.18], [0.0, 0.2]].map(([x, z]) => (
+        <mesh key={x} position={[x, 0.04, z]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <capsuleGeometry args={[0.035, 0.1, 4, 6]} />
+          <meshStandardMaterial color={fur} roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 export function Devices() {
   return (
     <group>
@@ -562,6 +626,7 @@ export function Devices() {
       <FrontDoor />
       <AlarmKeypad />
       <SecurityCamera />
+      <Dog />
     </group>
   );
 }
