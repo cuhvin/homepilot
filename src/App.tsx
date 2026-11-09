@@ -7,6 +7,7 @@ import { HousePanel, Upcoming } from './ui/HousePanel';
 import { ClockBar } from './ui/ClockBar';
 import { HomeStatus } from './ui/HomeStatus';
 import { PixelStreet } from './ui/PixelStreet';
+import { AgentPipeline } from './ui/AgentPipeline';
 import { Logo } from './ui/Logo';
 
 const LivingRoomScene = lazy(() => import('./ui/scene/LivingRoomScene'));
@@ -60,6 +61,7 @@ export default function App() {
             <PixelStreet />
             <Upcoming />
           </div>
+          <AgentPipeline />
         </div>
 
         <aside className="side">
