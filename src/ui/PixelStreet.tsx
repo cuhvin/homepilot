@@ -75,6 +75,7 @@ export function PixelStreet() {
     let raf = 0;
     let last = 0;
     let wasUnlocked = false;
+    let paused = false; // the street freezes while the SIM clock is paused
     let k = 1; // frame-time factor so movement speed doesn't depend on frame rate
 
     const px = (x: number, y: number, w: number, h: number, c: string) => {
@@ -122,7 +123,7 @@ export function PixelStreet() {
       }
       // clouds
       for (const c of clouds) {
-        c.x = (c.x + c.s) % (W + 60);
+        c.x = (c.x + c.s * k) % (W + 60);
         const cc = mix(mix('#2a2d55', '#ffffff', d), '#ffc2a0', golden * 0.5);
         px(c.x - 30, c.y, c.w, 3, cc);
         px(c.x - 30 + 3, c.y - 2, c.w - 8, 2, cc);
@@ -266,11 +267,13 @@ export function PixelStreet() {
       // chimney smoke when heating
       const th = home['home.thermostat'];
       const heating = th?.kind === 'thermostat' && (th.mode === 'heat' || th.mode === 'auto' || th.mode === 'eco') && th.current < th.target - 0.4;
-      if (heating && tick % 6 === 0) smoke.push({ x: X + 52, y: 13, life: 0 });
+      if (heating && !paused && tick % 6 === 0) smoke.push({ x: X + 52, y: 13, life: 0 });
       for (const s of smoke) {
-        s.life++;
-        s.y -= 0.35;
-        s.x += 0.15;
+        if (!paused) {
+          s.life++;
+          s.y -= 0.35;
+          s.x += 0.15;
+        }
         const sz = 2 + Math.floor(s.life / 12);
         ctx.globalAlpha = Math.max(0, 0.6 - s.life / 60);
         px(s.x, s.y, sz, sz, shade('#d9d4e4', Math.max(d, 0.5)));
@@ -280,13 +283,15 @@ export function PixelStreet() {
 
       // music notes from the window
       const sp = home['living.speaker'];
-      if (sp?.kind === 'speaker' && sp.on && tick % 10 === 0) {
+      if (sp?.kind === 'speaker' && sp.on && !paused && tick % 10 === 0) {
         notes.push({ x: wx + 16, y: wy, life: 0, c: ['#7ce9ff', '#ff8ad8', '#ffe066'][Math.floor(tick / 10) % 3] });
       }
       for (const n of notes) {
-        n.life++;
-        n.y -= 0.4;
-        n.x += Math.sin(n.life * 0.3) * 0.4;
+        if (!paused) {
+          n.life++;
+          n.y -= 0.4;
+          n.x += Math.sin(n.life * 0.3) * 0.4;
+        }
         ctx.globalAlpha = Math.max(0, 1 - n.life / 30);
         px(n.x, n.y, 1, 3, n.c);
         px(n.x - 2, n.y + 2, 2, 2, n.c);
@@ -306,7 +311,7 @@ export function PixelStreet() {
       if (van.visible) drawVan(px, van.x, d, tick);
 
       // ---- passing cars ----
-      if (!reduce && --nextCar <= 0) {
+      if (!reduce && !paused && --nextCar <= 0) {
         const dir = (Math.random() < 0.5 ? 1 : -1) as 1 | -1;
         cars.push({ x: dir === 1 ? -30 : W + 10, dir, color: ['#e06b5a', '#5a8fe0', '#f2c14e', '#8fd18a', '#c48ae0'][Math.floor(Math.random() * 5)], speed: 1.2 + Math.random() });
         nextCar = 140 + Math.random() * 220;
@@ -374,7 +379,7 @@ export function PixelStreet() {
           break;
       }
       if (walker.phase !== 'idle' && walker.phase !== 'onWalk') {
-        if (moving) walker.frame++;
+        if (moving && !paused) walker.frame++;
         // fade in/out near the corner so they don't pop
         const fadeIn = Math.max(0, Math.min(1, (corner - walker.x) / 25));
         const fadeInside = walker.phase === 'entering' ? Math.min(1, walker.timer / 600) : 1; // steps inside
@@ -389,8 +394,10 @@ export function PixelStreet() {
       if (t - last < 1000 / FPS) return;
       k = last ? Math.min(4, (t - last) / (1000 / FPS)) : 1;
       last = t;
-      tick++;
       const s = useStore.getState();
+      paused = s.speed === 0;
+      if (paused) k = 0; // nothing moves; state changes (door, lights) still redraw
+      else tick++;
       draw(s.home, s.now);
     };
     raf = requestAnimationFrame(loop);
