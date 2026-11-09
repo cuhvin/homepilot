@@ -54,6 +54,10 @@ interface Store {
   highlight: string | null;
   /** the dog is out for a walk (taken by the dog walker in the street view) */
   dogOut: boolean;
+  /** who shows up at the front door in the street view when it unlocks */
+  visitor: 'dogwalker' | 'guest';
+  /** bumps on reset so the street view can clear its characters */
+  resetCount: number;
 
   send: (text: string) => Promise<void>;
   confirmStep: (planId: string, index: number) => void;
@@ -87,15 +91,35 @@ export const useStore = create<Store>((set, get) => {
       return { plans: { ...s.plans, [planId]: { ...plan, steps } } };
     });
 
+  /** Unlocking the front door decides who the street view sends: the dog walker only when asked for. */
+  const noteVisitor = (planId: string, step: ValidatedStep) => {
+    if (step.device !== 'entry.frontdoor' || step.action !== 'unlock') return;
+    const plan = get().plans[planId];
+    const text = `${plan?.request ?? ''} ${plan?.response.understanding ?? ''}`;
+    set({ visitor: /\bdog|walker/i.test(text) ? 'dogwalker' : 'guest' });
+  };
+
   /** Execute or schedule one already-approved step. */
   const runStep = (planId: string, step: StepRun) => {
     if (step.schedule) {
+      // same device + action at the same time replaces the old schedule instead of stacking
+      // (asking for the morning routine again, or "make it 74 instead")
+      const sched = step.schedule;
+      const dup = sched.at ? get().tasks.find((t) =>
+        t.step.device === step.device && t.step.action === step.action &&
+        t.step.schedule?.at === sched.at && t.step.schedule?.repeat === sched.repeat) : undefined;
+      if (dup) {
+        set((s) => ({ tasks: s.tasks.filter((t) => t.id !== dup.id) }));
+        updateStep(dup.planId, dup.stepIndex, { status: 'rejected', result: 'replaced by a newer request' });
+        log('schedule', `${step.deviceLabel}: ${step.action} ${describeSchedule(sched)} replaced the earlier schedule`);
+      }
       const runAt = firstRun(step.schedule, Math.floor(get().now));
       set((s) => ({ tasks: [...s.tasks, { id: uid('t'), planId, stepIndex: step.index, step, runAt }] }));
       updateStep(planId, step.index, { status: 'scheduled', result: `${describeSchedule(step.schedule)} (next ${formatClock(runAt)})` });
       log('schedule', `${step.deviceLabel}: ${step.action} ${describeSchedule(step.schedule)}`, { step, runAt: formatClock(runAt) });
       return;
     }
+    noteVisitor(planId, step);
     const res = applyStep(get().home, step);
     set({ home: res.home });
     updateStep(planId, step.index, { status: res.ok ? 'done' : 'failed', result: res.message });
@@ -127,6 +151,8 @@ export const useStore = create<Store>((set, get) => {
     cooldownUntil: 0,
     highlight: null,
     dogOut: false,
+    visitor: 'guest',
+    resetCount: 0,
 
     async send(text) {
       const request = text.trim();
@@ -232,6 +258,7 @@ export const useStore = create<Store>((set, get) => {
       if (!due.length) return;
       let tasks = get().tasks.filter((t) => !due.includes(t));
       for (const t of due) {
+        noteVisitor(t.planId, t.step);
         const res = applyStep(get().home, t.step);
         set({ home: res.home, highlight: t.step.device });
         const when = formatClock(t.runAt);
@@ -259,7 +286,7 @@ export const useStore = create<Store>((set, get) => {
       set({ highlight: id });
     },
     resetHome() {
-      set({ home: initialHome(), now: START_MINUTES, tasks: [], plans: {}, chat: [], dogOut: false });
+      set({ home: initialHome(), now: START_MINUTES, tasks: [], plans: {}, chat: [], dogOut: false, visitor: 'guest', resetCount: get().resetCount + 1 });
       log('system', 'Home reset to defaults.');
     },
     clearLog() {

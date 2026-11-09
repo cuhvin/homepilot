@@ -35,7 +35,7 @@ function shade(c: string, light: number) {
 }
 
 interface Actor { x: number; visible: boolean; frame: number }
-type WalkerPhase = 'idle' | 'arriving' | 'pickup' | 'walkingAway' | 'onWalk' | 'returning' | 'dropoff' | 'leaving';
+type WalkerPhase = 'idle' | 'arriving' | 'pickup' | 'walkingAway' | 'onWalk' | 'returning' | 'dropoff' | 'leaving' | 'entering';
 interface Car { x: number; dir: 1 | -1; color: string; speed: number }
 
 export function PixelStreet() {
@@ -64,7 +64,8 @@ export function PixelStreet() {
     const stars = Array.from({ length: 60 }, () => ({ x: r(), y: r() * 34, p: r() * 6 }));
     const clouds = Array.from({ length: 4 }, (_, i) => ({ x: r() * 400, y: 6 + i * 7 + r() * 4, w: 14 + r() * 16, s: 0.05 + r() * 0.08 }));
 
-    const walker = { x: 9999, frame: 0, phase: 'idle' as WalkerPhase, timer: 0, withDog: false };
+    const walker = { x: 9999, frame: 0, phase: 'idle' as WalkerPhase, timer: 0, withDog: false, guest: false };
+    let lastReset = useStore.getState().resetCount;
     const van: Actor = { x: 9999, visible: false, frame: 0 };
     const cars: Car[] = [];
     const smoke: { x: number; y: number; life: number }[] = [];
@@ -321,9 +322,13 @@ export function PixelStreet() {
       const stop = dx + 13;
       const corner = stop + 120; // "around the corner"
       const step = 2.1 * k; // ~30 px/s
+      const st0 = useStore.getState();
+      if (st0.resetCount !== lastReset) { lastReset = st0.resetCount; walker.phase = 'idle'; walker.withDog = false; van.visible = false; }
       if (unlocked && !wasUnlocked && walker.phase === 'idle') {
-        walker.phase = useStore.getState().dogOut ? 'returning' : 'arriving';
-        walker.withDog = useStore.getState().dogOut;
+        // the dog walker only comes when the request was about them; otherwise a guest walks in
+        walker.guest = st0.visitor !== 'dogwalker' && !st0.dogOut;
+        walker.phase = st0.dogOut ? 'returning' : 'arriving';
+        walker.withDog = st0.dogOut;
         walker.x = corner;
       }
       wasUnlocked = unlocked;
@@ -334,8 +339,8 @@ export function PixelStreet() {
         case 'returning':
           walker.x = Math.max(stop, walker.x - step);
           if (walker.x <= stop) {
-            walker.phase = walker.phase === 'arriving' ? 'pickup' : 'dropoff';
-            walker.timer = 700;
+            walker.phase = walker.phase === 'arriving' ? (walker.guest ? 'entering' : 'pickup') : 'dropoff';
+            walker.timer = walker.guest ? 1200 : 700;
           }
           break;
         case 'pickup':
@@ -358,6 +363,11 @@ export function PixelStreet() {
             else walker.phase = 'idle';
           }
           break;
+        case 'entering':
+          moving = false;
+          walker.timer -= 1000 / FPS * k;
+          if (walker.timer <= 0) walker.phase = 'idle';
+          break;
         case 'onWalk':
           walker.timer -= 1000 / FPS * k;
           if (walker.timer <= 0) walker.phase = 'returning';
@@ -366,8 +376,10 @@ export function PixelStreet() {
       if (walker.phase !== 'idle' && walker.phase !== 'onWalk') {
         if (moving) walker.frame++;
         // fade in/out near the corner so they don't pop
-        ctx.globalAlpha = Math.max(0, Math.min(1, (corner - walker.x) / 25));
-        drawWalker(px, walker.x, walker.frame, d, tick, facingRight, walker.withDog);
+        const fadeIn = Math.max(0, Math.min(1, (corner - walker.x) / 25));
+        const fadeInside = walker.phase === 'entering' ? Math.min(1, walker.timer / 600) : 1; // steps inside
+        ctx.globalAlpha = fadeIn * fadeInside;
+        drawWalker(px, walker.x - (walker.phase === 'entering' ? 5 : 0), walker.frame, d, tick, facingRight, walker.withDog, walker.guest ? '#8a6fd1' : '#3fae8f');
         ctx.globalAlpha = 1;
       }
     };
@@ -398,14 +410,14 @@ export function PixelStreet() {
 
 type Px = (x: number, y: number, w: number, h: number, c: string) => void;
 
-function drawWalker(px: Px, x: number, frame: number, d: number, tick: number, facingRight: boolean, withDog: boolean) {
+function drawWalker(px: Px, x: number, frame: number, d: number, tick: number, facingRight: boolean, withDog: boolean, shirt: string) {
   const f = Math.floor(frame / 4) % 2;
   const y = GROUND + 2; // feet line
   const skin = shade('#e0a77c', d);
   // person
   px(x, y - 15, 4, 3, skin);
   px(x, y - 16, 4, 1, shade('#3b2a20', d));
-  px(x - 1, y - 12, 6, 6, shade('#3fae8f', d));
+  px(x - 1, y - 12, 6, 6, shade(shirt, d));
   px(x + (facingRight ? 4 : -2), y - 11, 2, 4, skin);
   px(x, y - 6, 2, 6 - (f ? 1 : 0), shade('#2f3550', d));
   px(x + 2, y - 6, 2, 6 - (f ? 0 : 1), shade('#2f3550', d));
