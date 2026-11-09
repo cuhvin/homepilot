@@ -5,7 +5,7 @@
 // - one "repair" round-trip when the output fails to parse
 // - falls back to a second free-tier model when the first one is rate-limited
 
-import { GoogleGenAI, ApiError } from '@google/genai';
+import { GoogleGenAI, ApiError, ThinkingLevel } from '@google/genai';
 import { SYSTEM_PROMPT, repairPrompt } from './prompts.js';
 import { RESPONSE_JSON_SCHEMA, parseAgentResponse, type AgentResponse } from './schema.js';
 
@@ -37,6 +37,13 @@ const MAX_INLINE_WAIT_SEC = 8; // longer suggested waits are returned to the use
 
 type Content = { role: 'user' | 'model'; parts: { text: string }[] };
 
+const THINKING: Record<string, ThinkingLevel> = {
+  minimal: ThinkingLevel.MINIMAL,
+  low: ThinkingLevel.LOW,
+  medium: ThinkingLevel.MEDIUM,
+  high: ThinkingLevel.HIGH,
+};
+
 export const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 export const DEFAULT_FALLBACK = 'gemini-3.1-flash-lite';
 
@@ -65,6 +72,8 @@ export async function planWithGemini(userPrompt: string, opts: { apiKey?: string
             responseMimeType: 'application/json',
             responseJsonSchema: RESPONSE_JSON_SCHEMA,
             temperature: 0.2,
+            // planning a few device steps doesn't need deep reasoning; LOW keeps replies fast
+            thinkingConfig: { thinkingLevel: THINKING[(process.env.GEMINI_THINKING ?? 'low').toLowerCase()] ?? ThinkingLevel.LOW },
             maxOutputTokens: 2048,
             abortSignal: ctrl.signal,
           },
@@ -83,6 +92,7 @@ export async function planWithGemini(userPrompt: string, opts: { apiKey?: string
           return toFailure(err, status, suggested, attempts);
         }
         const backoff = suggested ? suggested * 1000 : 800 * 2 ** (attempts - 1) + Math.random() * 400;
+        console.warn(`[llm] ${model} attempt ${attempts} failed (${status || 'network'}): ${(err as Error).message?.slice(0, 120)}; retrying in ${Math.round(backoff)} ms`);
         await sleep(backoff);
       } finally {
         clearTimeout(timer);

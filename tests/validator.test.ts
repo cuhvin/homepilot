@@ -66,7 +66,8 @@ describe('validator: clamps and repairs', () => {
   it('drops parameters the action does not use', () => {
     const v = validateStep(step({ device: 'entry.frontdoor', action: 'lock', params: { brightness: 50 } }), 0, home);
     expect(v.params).toEqual({});
-    expect(v.warnings.join(' ')).toMatch(/Ignored/);
+    expect(v.notes.join(' ')).toMatch(/Ignored/);
+    expect(v.warnings.join(' ')).not.toMatch(/Ignored/);
   });
 });
 

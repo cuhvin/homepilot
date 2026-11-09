@@ -173,7 +173,7 @@ export const useStore = create<Store>((set, get) => {
       }));
       const blocked = steps.filter((s) => s.blocked);
       const warnings = steps.flatMap((s) => s.warnings.map((w) => `step ${s.index + 1}: ${w}`));
-      log('validation', `${steps.length} steps: ${steps.length - blocked.length} valid, ${blocked.length} blocked, ${steps.filter((s) => s.status === 'awaiting').length} need confirmation`, { warnings, blocked: blocked.map((b) => b.blockReason) });
+      log('validation', `${steps.length} steps: ${steps.length - blocked.length} valid, ${blocked.length} blocked, ${steps.filter((s) => s.status === 'awaiting').length} need confirmation`, { warnings, notes: steps.flatMap((s) => s.notes.map((n) => `step ${s.index + 1}: ${n}`)), blocked: blocked.map((b) => b.blockReason) });
       for (const b of blocked) log('blocked', `Step ${b.index + 1} blocked: ${b.blockReason}`, b);
 
       const planId = uid('p');

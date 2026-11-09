@@ -26,7 +26,8 @@ export interface ValidatedStep {
   risk: Risk;
   blocked: boolean;
   blockReason?: string;
-  warnings: string[];
+  warnings: string[]; // shown to the resident
+  notes: string[]; // harmless clean-ups, kept for the audit log only
 }
 
 export function validatePlan(steps: PlanStep[], home: HomeState): ValidatedStep[] {
@@ -61,6 +62,7 @@ export function validateStep(step: PlanStep, index: number, home: HomeState): Va
     risk: 'safe',
     blocked: false,
     warnings: [],
+    notes: [],
   };
   const block = (why: string): ValidatedStep => ({ ...base, blocked: true, blockReason: why });
 
@@ -79,9 +81,9 @@ export function validateStep(step: PlanStep, index: number, home: HomeState): Va
   const params: StepParams = {};
   const raw = (step.params ?? {}) as Record<string, unknown>;
   for (const key of Object.keys(raw)) {
-    if (raw[key] === null || raw[key] === undefined) continue;
+    if (raw[key] === null || raw[key] === undefined || raw[key] === '') continue;
     if (!spec.params.includes(key as ParamName)) {
-      base.warnings.push(`Ignored "${key}" (not used by ${step.action}).`);
+      base.notes.push(`Ignored "${key}" (not used by ${step.action}).`);
       continue;
     }
     const res = cleanParam(key as ParamName, raw[key], info.kind);
