@@ -25,43 +25,46 @@ export function HousePanel() {
   const home = useStore((s) => s.home);
   const highlight = useStore((s) => s.highlight);
   const plans = useStore((s) => s.plans);
-  const tasks = useStore((s) => s.tasks);
   const pending = new Set(Object.values(plans).flatMap((p) => p.steps.filter((st) => st.status === 'awaiting').map((st) => st.device)));
-  const upcoming = [...tasks].sort((a, b) => a.runAt - b.runAt).slice(0, 5);
 
   return (
     <section className="house" aria-label="Security and climate">
-      <div className="house__grid">
-        {CARDS.map((c) => {
-          const s = home[c.id];
-          if (!s) return null;
-          return (
-            <div key={c.id} className={`card card--${c.tone(s)} ${highlight === c.id ? 'card--flash' : ''} ${pending.has(c.id) ? 'card--pending' : ''}`}>
-              <span className="card__icon">{c.icon(s)}</span>
-              <div className="card__text">
-                <span className="card__title">{c.title}</span>
-                <span className="card__state">{short(s)}</span>
-              </div>
+      {CARDS.map((c) => {
+        const s = home[c.id];
+        if (!s) return null;
+        return (
+          <div key={c.id} className={`card card--${c.tone(s)} ${highlight === c.id ? 'card--flash' : ''} ${pending.has(c.id) ? 'card--pending' : ''}`}>
+            <span className="card__icon">{c.icon(s)}</span>
+            <div className="card__text">
+              <span className="card__title">{c.title}</span>
+              <span className="card__state">{short(s)}</span>
             </div>
-          );
-        })}
-      </div>
-      <div className="upcoming">
-        <h3><CalendarClock size={14} /> Upcoming</h3>
-        {upcoming.length === 0 ? (
-          <p className="muted">Nothing scheduled. Try "weekday mornings at 7".</p>
-        ) : (
-          <ul>
-            {upcoming.map((t) => (
-              <li key={t.id}>
-                <time>{formatClock(t.runAt)}</time>
-                <span>{t.step.deviceLabel.replace(/ \(.*\)$/, '')}: {t.step.action}{t.step.schedule && t.step.schedule.repeat !== 'once' ? ` (${describeSchedule(t.step.schedule).replace(/^at \S+ (AM|PM) /, '')})` : ''}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          </div>
+        );
+      })}
     </section>
+  );
+}
+
+export function Upcoming() {
+  const tasks = useStore((s) => s.tasks);
+  const upcoming = [...tasks].sort((a, b) => a.runAt - b.runAt).slice(0, 5);
+  return (
+    <div className="upcoming">
+      <h3><CalendarClock size={14} /> Upcoming</h3>
+      {upcoming.length === 0 ? (
+        <p className="muted">Nothing scheduled yet. Try “Every weekday at 7 AM…” or the dog walker.</p>
+      ) : (
+        <ul>
+          {upcoming.map((t) => (
+            <li key={t.id}>
+              <time>{formatClock(t.runAt)}</time>
+              <span>{t.step.deviceLabel.replace(/ \(.*\)$/, '')}: {t.step.action}{t.step.schedule && t.step.schedule.repeat !== 'once' ? ` (${describeSchedule(t.step.schedule).replace(/^at \S+ (AM|PM) /, '')})` : ''}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

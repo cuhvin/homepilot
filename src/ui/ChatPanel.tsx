@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Send, Sparkles } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import { Logo } from './Logo';
 import { useStore } from '../store';
 import { PlanCard } from './PlanCard';
 
@@ -44,7 +45,7 @@ export function ChatPanel() {
       <div className="chat__log" aria-live="polite">
         {chat.map((c) => (
           <div key={c.id} className={`msg msg--${c.role} ${c.tone ? `msg--${c.tone}` : ''}`}>
-            {c.role === 'agent' && <span className="msg__avatar"><Sparkles size={14} /></span>}
+            {c.role === 'agent' && <span className="msg__avatar"><Logo size={28} /></span>}
             <div className="msg__body">
               <p>{c.text}</p>
               {c.planId && <PlanCard planId={c.planId} />}
@@ -53,7 +54,7 @@ export function ChatPanel() {
         ))}
         {busy && (
           <div className="msg msg--agent">
-            <span className="msg__avatar"><Sparkles size={14} /></span>
+            <span className="msg__avatar"><Logo size={28} /></span>
             <div className="msg__body"><p className="typing"><span /><span /><span /> planning…</p></div>
           </div>
         )}
@@ -76,7 +77,7 @@ export function ChatPanel() {
           aria-label="Request"
         />
         <button className="btn btn--primary" disabled={busy || cooldown > 0 || !text.trim()} aria-label="Send">
-          <Send size={16} />
+          <ArrowUp size={18} strokeWidth={2.5} />
         </button>
       </form>
     </div>
